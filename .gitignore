@@ -1,0 +1,13 @@
+.idea
+.vs
+
+Healbe.PostgreSqlBulkService/bin
+Healbe.PostgreSqlBulkService/obj
+
+Healbe.PostgreSqlBulkService.Tests/bin
+Healbe.PostgreSqlBulkService.Tests/obj
+
+Healbe.PostgresSqlBulkService.Abstractions/bin
+Healbe.PostgresSqlBulkService.Abstractions/obj
+
+*.DotSettings.user
