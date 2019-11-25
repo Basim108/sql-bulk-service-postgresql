@@ -18,6 +18,13 @@ namespace Hrimsoft.PostgresSqlBulkService
             _logger = loggerFactory.CreateLogger<InsertSqlCommandBuilder>();
         }
         
+        /// <summary>
+        /// Generates sql inset command for bunch of elements
+        /// </summary>
+        /// <param name="elements">elements that have to be inserted into the table</param>
+        /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Returns a text of an sql inset command</returns>
         public string Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -84,7 +91,7 @@ namespace Hrimsoft.PostgresSqlBulkService
                 firstItem = false;
             }
 
-            // TODO: вставить returnning
+            // TODO: add returning clause
             if (needReturning)
                 GenerateReturning(resultBuilder, entityProfile);
             
@@ -100,15 +107,18 @@ namespace Hrimsoft.PostgresSqlBulkService
         /// </summary>
         /// <param name="item">item with values</param>
         /// <param name="propInfo">information about which property it is needed to get value</param>
-        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TEntity">Type of entity</typeparam>
+        /// <typeparam name="TValue">Type of property which value has to be calculated</typeparam>
         /// <returns>Returns</returns>
-        private string GetValue<TEntity>(TEntity item, PropertyProfile propInfo)
+        private TValue GetValue<TEntity, TValue>(TEntity item, PropertyProfile propInfo)
             where TEntity : class
         {
+            // TODO: make funcation dependent to a particular type of property
             var idMemberExpression = propInfo.PropertyExpresion;
             var convert = Expression.Convert(idMemberExpression, idMemberExpression.Type);
-            var wee = Expression.Lambda(convert, idMemberExpression.Expression as ParameterExpression);
-            var id = wee.Compile().DynamicInvoke(item);
+            var lambda = Expression.Lambda<TEntity, TValue>(convert, idMemberExpression.Expression as ParameterExpression);
+            var value = lambda.Compile().Invoke(item);
+            return value;
         }
     }
 }
