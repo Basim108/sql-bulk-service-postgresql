@@ -13,13 +13,13 @@ namespace Hrimsoft.PostgresSqlBulkService
     public class PropertyProfile
     {
         /// <inheritdoc />
-        public PropertyProfile(string column, [NotNull] MemberExpression memberExpression)
+        public PropertyProfile(string column, [NotNull] Expression propertyExpression)
         {
             if (string.IsNullOrWhiteSpace(column))
                 throw new ArgumentNullException(nameof(column));
             
             this.DbColumnName = column;
-            this.PropertyExpresion = memberExpression;
+            this.PropertyExpression = propertyExpression;
         }
         
         /// <summary>
@@ -35,7 +35,7 @@ namespace Hrimsoft.PostgresSqlBulkService
         /// <summary>
         /// Expression to access a property 
         /// </summary>
-        public MemberExpression PropertyExpresion { get; }
+        public Expression PropertyExpression { get; }
 
         /// <summary>
         /// Column name in database table 
@@ -48,7 +48,8 @@ namespace Hrimsoft.PostgresSqlBulkService
         public DbType DbColumnType { get; private set;  }
         
         /// <summary>
-        /// When applied, the value of the column that represents this property will be included after insert
+        /// When applied, the value of the column that represents this property will be included after insert in returning clause
+        /// and then auto generated id values will be mapped on entities that have such properties as a key.
         /// </summary>
         public PropertyProfile ThatIsPartOfKey()
         {

@@ -66,13 +66,11 @@ namespace Hrimsoft.PostgresSqlBulkService
                     var paramName = $"@param{paramIndex++}";
                     commandParameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                     {
-                        Value = GetValue(item, propInfo)
+                        Value = propInfo.GetPropertyValue(item)
                     });
                         
                     resultBuilder.Append(delimiter);
-                    resultBuilder.Append('"');
                     resultBuilder.Append(paramName);
-                    resultBuilder.Append('"');
 
                     firstPropertyValue = false;
                 }
@@ -85,8 +83,10 @@ namespace Hrimsoft.PostgresSqlBulkService
                 firstItem = false;
             }
 
+            resultBuilder.Append(" ");
             resultBuilder.Append(returningClause);
-
+            resultBuilder.Append(";");
+            
             var result = resultBuilder.ToString();
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"result command: {result}");
@@ -108,7 +108,7 @@ namespace Hrimsoft.PostgresSqlBulkService
             var returningClause = "";
             var firstReturningColumn = true;
 
-            var columns = "(";
+            var columns = "";
             var firstColumn = true;
             foreach (var propInfo in properties)
             {
@@ -133,8 +133,6 @@ namespace Hrimsoft.PostgresSqlBulkService
                 firstColumn = false;
             }
 
-            columns += ")";
-
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug($"columns: {columns}");
@@ -142,24 +140,6 @@ namespace Hrimsoft.PostgresSqlBulkService
             }
 
             return (columns, returningClause);
-        }
-
-        /// <summary>
-        /// Calculates value of an item's property
-        /// </summary>
-        /// <param name="item">item with values</param>
-        /// <param name="propInfo">information about which property it is needed to get value</param>
-        /// <typeparam name="TEntity">Type of entity</typeparam>
-        /// <returns>Returns</returns>
-        // ReSharper disable once MemberCanBePrivate.Global  Needed to be public for unit testing purpose
-        public object GetValue<TEntity>([NotNull] TEntity item, [NotNull] PropertyProfile propInfo)
-            where TEntity : class
-        {
-            var idMemberExpression = propInfo.PropertyExpresion;
-            var convert = Expression.Convert(idMemberExpression, idMemberExpression.Type);
-            var lambda = Expression.Lambda(convert, idMemberExpression.Expression as ParameterExpression);
-            var value = lambda.Compile().DynamicInvoke(item);
-            return value;
         }
     }
 }

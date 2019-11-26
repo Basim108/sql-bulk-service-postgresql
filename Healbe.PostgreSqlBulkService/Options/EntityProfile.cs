@@ -16,20 +16,30 @@ namespace Hrimsoft.PostgresSqlBulkService
             this.EntityType = entityType;
             this.Properties = new Dictionary<string, PropertyProfile>();
         }
-        
+
         /// <summary>
         /// The maximum number of elements that have to be included into one command.
         /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.  
         /// </summary>
         public int MaximumSentElements { get; protected set; }
-        
+
         /// <summary>
         /// Type of entity that owns all these mapped properties
         /// </summary>
         [NotNull]
         public Type EntityType { get; }
-        
-        public string TableName { get; private set; }
+
+        private string _tableName;
+        public string TableName
+        {
+            get {
+                if (string.IsNullOrWhiteSpace(_tableName))
+                    _tableName = $"\"{EntityType.Name.ToSnakeCase()}\"";
+
+                return _tableName;
+            }
+            private set => _tableName = value;
+        }
 
         /// <summary>
         /// Collection of properties 
@@ -51,7 +61,7 @@ namespace Hrimsoft.PostgresSqlBulkService
                 this.TableName = $"\"{schema}\".{this.TableName}";
             }
         }
-        
+
         /// <summary>
         /// Adds a mapping a property to its snake cased column equivalent 
         /// </summary>
@@ -60,7 +70,7 @@ namespace Hrimsoft.PostgresSqlBulkService
         {
             return HasProperty("", propertyExpression);
         }
-        
+
         /// <summary>
         /// Adds a specific mapping 
         /// </summary>
@@ -68,26 +78,28 @@ namespace Hrimsoft.PostgresSqlBulkService
         /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
         public PropertyProfile HasProperty<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
         {
-            var memberExpression = propertyExpression.Body as MemberExpression;
-            if (memberExpression == null 
-                || propertyExpression.Body is ConstantExpression)
-                throw new ArgumentException($"Wrong type of expression body. It should be a MemberExpression, but it is {propertyExpression.Body.GetType().Name}", nameof(propertyExpression));
+            var propertyName = "";
+
+            if (propertyExpression.Body is MemberExpression memberExpression)
+                propertyName = memberExpression.Member.Name;
+            else if (propertyExpression.Body is ParameterExpression parameterExpression)
+                propertyName = parameterExpression.Name;
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+                propertyName = column;
             
-            var propertyName = memberExpression.Member.Name;
-            
-            PropertyProfile propertyProfile = null;
-            if (this.Properties.ContainsKey(propertyName))
-            {
-                propertyProfile = this.Properties[propertyName];
-            }
-            else
-            {
-                var columnName = string.IsNullOrWhiteSpace(column)
-                    ? propertyName.ToSnakeCase()
-                    : column;
-                propertyProfile = new PropertyProfile(columnName, memberExpression);
-                this.Properties.Add(propertyName, propertyProfile);
-            }
+            var columnName = string.IsNullOrWhiteSpace(column)
+                ? propertyName.ToSnakeCase()
+                : column;
+
+            if (string.IsNullOrWhiteSpace(columnName))
+                throw new ArgumentException("Cannot calculate column name, so the argument must be set manually", nameof(column));
+
+            if (this.Properties.ContainsKey(columnName))
+                throw new ApplicationException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
+
+            var propertyProfile = new PropertyProfile(columnName, propertyExpression);
+            this.Properties.Add(columnName, propertyProfile);
 
             return propertyProfile;
         }
