@@ -1,13 +1,10 @@
 .idea
 .vs
 
-Healbe.PostgreSqlBulkService/bin
-Healbe.PostgreSqlBulkService/obj
+Hrimsoft.SqlBulk.PostgreSql/bin
+Hrimsoft.SqlBulk.PostgreSql/obj
 
-Healbe.PostgreSqlBulkService.Tests/bin
-Healbe.PostgreSqlBulkService.Tests/obj
-
-Healbe.PostgresSqlBulkService.Abstractions/bin
-Healbe.PostgresSqlBulkService.Abstractions/obj
+Hrimsoft.SqlBulk.PostgreSql.Tests/bin
+Hrimsoft.SqlBulk.PostgreSql.Tests/obj
 
 *.DotSettings.user

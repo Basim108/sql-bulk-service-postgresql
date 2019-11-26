@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>Hrimsoft.PostgresSqlBulkService</PackageId>
+        <Title>Hrimsoft.PostgresSqlBulkService</Title>
+        <Authors>Basim Al-Jawahery</Authors>
+        <Description>Provides bulk operations (upsert, insert, update, delete) on postgresql</Description>
+        <PackageProjectUrl>https://github.com/Basim108/postgresql-bulk-service</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Basim108/postgresql-bulk-service</RepositoryUrl>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <Company>Himsoft</Company>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.0.1" />
+        <PackageReference Include="Npgsql" Version="4.1.2" />
+    </ItemGroup>
+
+</Project>
