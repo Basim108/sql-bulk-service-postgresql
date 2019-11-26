@@ -1,7 +1,6 @@
 using System.Data;
-using Hrimsoft.SqlBulk.PostgreSql;
 
-namespace Healbe.PostgreSqlBulkService.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
 {
     /// <summary>
     /// Entity profile that defines properties that have to be included into the returning clause

@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using Healbe.PostgreSqlBulkService.Tests.TestModels;
-using Hrimsoft.SqlBulk.PostgreSql;
+using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NUnit.Framework;
 
-namespace Healbe.PostgreSqlBulkService.Tests.Options
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
 {
     public class EntityProfileTests
     {

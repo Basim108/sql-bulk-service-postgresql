@@ -2,12 +2,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
-using Healbe.PostgreSqlBulkService.Tests.TestModels;
-using Hrimsoft.SqlBulk.PostgreSql;
+using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 
-namespace Healbe.PostgreSqlBulkService.Tests.Services
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
 {
     public class InsertSqlCommandBuilderTests
     {

@@ -1,8 +1,7 @@
-using Healbe.PostgreSqlBulkService.Tests.TestModels;
-using Hrimsoft.SqlBulk.PostgreSql;
+using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NUnit.Framework;
 
-namespace Healbe.PostgreSqlBulkService.Tests.Extensions
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions
 {
     public class PropertyProfileExtensionsTests
     {

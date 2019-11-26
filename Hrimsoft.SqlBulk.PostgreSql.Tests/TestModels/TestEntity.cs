@@ -1,4 +1,4 @@
-namespace Healbe.PostgreSqlBulkService.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
 {
     public class TestEntity
     {

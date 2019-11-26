@@ -16,6 +16,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
-        Task<ICollection<TEntity>> InsertAllAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken);
+        Task<ICollection<TEntity>> InsertAllAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+            where TEntity : class;
     }
 }

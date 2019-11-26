@@ -22,7 +22,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             setupAction(options);
             
             services.AddSingleton<IPostgreSqlBulkService>(
-                sp => new NpgsqlCommandsBulkService(sp.GetRequiredService<ILoggerFactory>(), options));
+                sp => new NpgsqlCommandsBulkService(
+                    options,
+                    sp.GetRequiredService<ILoggerFactory>(),
+                    sp.GetRequiredService<IInsertSqlCommandBuilder>()));
             
             return services;
         }

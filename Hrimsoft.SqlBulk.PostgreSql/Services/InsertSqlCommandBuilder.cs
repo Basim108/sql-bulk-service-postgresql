@@ -53,6 +53,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var paramIndex = 1;
             foreach (var item in elements)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 var firstPropertyValue = true;
                 foreach (var propInfo in entityProfile.Properties.Values)
                 {

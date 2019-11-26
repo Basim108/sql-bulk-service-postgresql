@@ -4,8 +4,6 @@
         <TargetFramework>netcoreapp3.0</TargetFramework>
 
         <IsPackable>false</IsPackable>
-
-        <RootNamespace>Healbe.PostgreSqlBulkService.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

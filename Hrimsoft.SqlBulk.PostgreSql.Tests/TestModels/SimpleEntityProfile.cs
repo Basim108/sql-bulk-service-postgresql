@@ -1,7 +1,6 @@
 using System.Data;
-using Hrimsoft.SqlBulk.PostgreSql;
 
-namespace Healbe.PostgreSqlBulkService.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
 {
     public class SimpleEntityProfile: EntityProfile
     {
