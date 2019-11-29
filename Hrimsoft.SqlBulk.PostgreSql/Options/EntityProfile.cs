@@ -96,7 +96,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentException("Cannot calculate column name, so the argument must be set manually", nameof(column));
 
             if (this.Properties.ContainsKey(columnName))
-                throw new ApplicationException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
+                throw new SqlBulkServiceException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression);
             this.Properties.Add(columnName, propertyProfile);

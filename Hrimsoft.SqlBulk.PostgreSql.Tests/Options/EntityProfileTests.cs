@@ -33,6 +33,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
         }
 
         [Test]
+        public void HasProperty_should_not_pass_duplicates()
+        {
+            var i = Math.Round((decimal)5 / 2, MidpointRounding.ToPositiveInfinity);
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+            Assert.Throws<SqlBulkServiceException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+        }
+
+        
+        [Test]
         public void HasProperty_should_pass_member_expressions()
         {
             var entityProfile = new EntityProfile(typeof(TestEntity));

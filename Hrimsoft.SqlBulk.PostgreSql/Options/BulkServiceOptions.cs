@@ -9,12 +9,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class BulkServiceOptions
     {
+        /// <inheritdoc />
+        public BulkServiceOptions() { }
+
+        /// <inheritdoc />
+        public BulkServiceOptions(int maximumSentElements)
+        {
+            this.MaximumSentElements = maximumSentElements;
+        }
+        
         private readonly Dictionary<Type, EntityProfile> _supportedEntityTypes = new Dictionary<Type, EntityProfile>();
 
         /// <summary>
         /// Information about mapping business entities to the postgres entities
         /// </summary>
-        public IDictionary<Type, EntityProfile> SupportedEntityTypes => _supportedEntityTypes;
+        public IReadOnlyDictionary<Type, EntityProfile> SupportedEntityTypes => _supportedEntityTypes;
 
         /// <summary>
         /// The maximum number of elements that have to be included into one command.
@@ -46,6 +55,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             _supportedEntityTypes[entityProfile.EntityType] = entityProfile;
             
             return this;
+        }
+
+        /// <summary>
+        /// Register an entity profile that describes entity mapping and other options
+        /// </summary>
+        public void AddEntityProfile<TEntity>([NotNull] EntityProfile profile)
+        {
+            _supportedEntityTypes.Add(typeof(TEntity), profile);
         }
     }
 }
