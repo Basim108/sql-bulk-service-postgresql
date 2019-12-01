@@ -155,7 +155,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!propInfoPair.Value.UpdateAfterOperationComplete)
+                if (!propInfoPair.Value.IsUpdatedAfterInsert)
                     continue;
                 var value = reader[propInfoPair.Key];
                 propInfoPair.Value.SetPropertyValue(item, value);
