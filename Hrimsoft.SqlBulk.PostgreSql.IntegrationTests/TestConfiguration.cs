@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests
 {
     public class TestConfiguration
     {

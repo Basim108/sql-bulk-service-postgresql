@@ -1,4 +1,4 @@
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
 {
     public class TestEntity
     {

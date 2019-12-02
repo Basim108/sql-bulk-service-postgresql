@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
+using Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
 {
     public class BulkInsertIntegrationTests
     {

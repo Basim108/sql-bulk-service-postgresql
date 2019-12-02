@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
 {
     /// <summary>
     /// Entity profile that defines properties that have to be included into the returning clause
