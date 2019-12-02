@@ -125,14 +125,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 await connection.OpenAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
-            var (commandText, parameters) = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            using (var command = new NpgsqlCommand(commandText, connection))
+            var commandResult = commandBuilder.Generate(elements, entityProfile, cancellationToken);
+            using (var command = new NpgsqlCommand(commandResult.Command, connection))
             {
-                foreach (var param in parameters)
+                foreach (var param in commandResult.Parameters)
                 {
                     command.Parameters.Add(param);
                 }
 
+                //TODO: Make an option where a user will be able to set transaction behaviour for each portion. Whether should we ignore situation when some portions execution failed or not.
                 var transaction = connection.BeginTransaction();
                 try
                 {
@@ -148,8 +149,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                 _logger.LogError(message);
                                 throw new SqlBulkServiceException(message);
                             }
-
-                            await UpdatePropertiesAfterCommandExecutionAsync(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
+                            
+                            if(commandResult.IsThereReturningClause)
+                                await UpdatePropertiesAfterCommandExecutionAsync(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
                         }
 
                         await reader.CloseAsync();
@@ -159,7 +161,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "bulk command execution failed");
                     await transaction.RollbackAsync(cancellationToken);
+                    //TODO: Make an option where a user will be able to select the behaviour of this situation. ignore it or rise an exception higher
                 }
             }
 

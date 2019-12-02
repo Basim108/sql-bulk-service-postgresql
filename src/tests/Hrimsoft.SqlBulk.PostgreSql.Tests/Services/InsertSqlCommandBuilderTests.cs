@@ -33,10 +33,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
 
-            Assert.IsFalse(command.Contains("sensor_id"));
+            Assert.IsFalse(commandResult.Command.Contains("sensor_id"));
         }
         
         [Test]
@@ -52,10 +52,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
 
-            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(commandResult.Command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -66,10 +66,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity{ RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
 
-            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(commandResult.Command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -83,10 +83,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
                 new TestEntity{ RecordId = "rec-01", SensorId = "sens-02", Value = 227 },
                 new TestEntity{ RecordId = "rec-02", SensorId = "sens-02", Value = 228 }
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
 
-            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(commandResult.Command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -97,10 +97,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01"}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
 
-            Assert.IsFalse(command.Contains("(\"id\""));
+            Assert.IsFalse(commandResult.Command.Contains("(\"id\""));
         }
         
         [Test]
@@ -111,12 +111,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01"}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
             
             // pattern should match "id" whatever builder put the "id" column returning "id";  or returning ""value", "id"; 
             var pattern = @"returning\s+(""\w+""\s*,\s*)*""id""";
-            Assert.IsTrue(Regex.IsMatch(command, pattern, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -127,10 +127,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01"}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
             
-            Assert.IsTrue(command.EndsWith(";"));
+            Assert.IsTrue(commandResult.Command.EndsWith(";"));
         }
         
         [Test]
@@ -141,14 +141,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01", SensorId = "sens-02", Value = 12}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
-            Assert.NotNull(parameters);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
+            Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(3, parameters.Count);
-            Assert.NotNull(parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
-            Assert.NotNull(parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
-            Assert.NotNull(parameters.FirstOrDefault(p => p.DbType == DbType.Int32 && (int)p.Value == 12));
+            Assert.AreEqual(3, commandResult.Parameters.Count);
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.DbType == DbType.Int32 && (int)p.Value == 12));
         }
         [Test]
         public void Should_return_correct_parameters_types()
@@ -158,13 +158,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01", SensorId = "sens-02", Value = 12}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
-            Assert.NotNull(parameters);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
+            Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(3, parameters.Count);
-            Assert.AreEqual(2, parameters.Where(p => p.DbType == DbType.String).ToList().Count);
-            Assert.NotNull(parameters.FirstOrDefault(p => p.DbType == DbType.Int32));
+            Assert.AreEqual(3, commandResult.Parameters.Count);
+            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.DbType == DbType.String).ToList().Count);
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.DbType == DbType.Int32));
         }
         
         [Test]
@@ -175,10 +175,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01"}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
             
-            Assert.IsTrue(command.ToLowerInvariant().StartsWith("insert into \"unit_tests\".\"simple_test_entity\""));
+            Assert.IsTrue(commandResult.Command.ToLowerInvariant().StartsWith("insert into \"unit_tests\".\"simple_test_entity\""));
         }
         
         [Test]
@@ -191,10 +191,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity {RecordId = "rec-01"}
             };
-            var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
-            Assert.NotNull(command);
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
             
-            Assert.IsTrue(command.ToLowerInvariant().StartsWith("insert into \"custom\".\"test_entity\""));
+            Assert.IsTrue(commandResult.Command.ToLowerInvariant().StartsWith("insert into \"custom\".\"test_entity\""));
         }
     }
 }

@@ -7,6 +7,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests
     {
         private readonly string _environment;
 
+        // In secrets.json it is recommended to set environment fields first e.g.
+        // { "Staging": { "DbHost": "...", ... }, "Postgres_9_5": { "DbHost": "...", ... }, "Postgres_9_4": {...} }
         public TestConfiguration(string environment="Staging")
         {
             _environment = environment;
@@ -30,7 +32,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests
                     var builder = new NpgsqlConnectionStringBuilder(commonOptions)
                     {
                         // In secrets.json it is recommended to set environment fields first e.g.
-                        // { "Staging": { "DbHost": "...", ... }, "Development": { "DbHost": "...", ... } }
+                        // { "Staging": { "DbHost": "...", ... }, "Postgres_9_5": { "DbHost": "...", ... }, "Postgres_9_4": {...} }
                         Host = Configuration[$"{_environment}:DbHost"],
                         Database = Configuration[$"{_environment}:Database"],
                         Username = Configuration[$"{_environment}:DbUsername"],

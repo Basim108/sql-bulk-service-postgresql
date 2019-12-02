@@ -28,7 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql update command and collection of database parameters</returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters) Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile,
+        public SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -45,14 +45,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-
+            var isThereReturningClause = false;
             using (var elementsEnumerator = elements.GetEnumerator())
             {
                 // ignore all null items until find the first not null item
                 while (elementsEnumerator.Current == null)
                     elementsEnumerator.MoveNext();
 
-                var (commandForOneItem, itemParameters) = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
+                var (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
+                isThereReturningClause = hasReturningClause;
                 allItemsParameters.AddRange(itemParameters);
 
                 var approximateEntireCommandLength = commandForOneItem.Length * elements.Count;
@@ -69,7 +70,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (elementsEnumerator.Current == null)
                         continue;
 
-                    (commandForOneItem, itemParameters) = GenerateForItem(
+                    (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(
                         entityProfile, 
                         elementsEnumerator.Current, 
                         resultBuilder, 
@@ -84,7 +85,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     _logger.LogDebug($"result command: {result}");
             }
 
-            return (Command: result, Parameters: allItemsParameters);
+            return new SqlCommandBuilderResult{
+                Command = result, 
+                Parameters = allItemsParameters,
+                IsThereReturningClause = isThereReturningClause
+            };
         }
 
         /// <summary>
@@ -95,7 +100,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="externalBuilder">Builder to which the generated for an item command will be appended</param>
         /// <param name="lastUsedParamIndex">As this method is called for each item, this argument indecates the last used parameter index</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters) GenerateForItem<TEntity>(
+        public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause) GenerateForItem<TEntity>(
             [NotNull] EntityProfile entityProfile, 
             [NotNull] TEntity item,
             StringBuilder externalBuilder,
@@ -177,7 +182,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 _logger.LogDebug($"returningClause: {returningClause}");
             }
 
-            return (command, parameters);
+            return (command, parameters, !firstReturningColumn);
         }
     }
 }

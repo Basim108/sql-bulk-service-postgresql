@@ -28,7 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql inset command and collection of database parameters</returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters) Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
+        public SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class
         {
             if (elements.Count == 0)
@@ -90,15 +90,23 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
             }
 
-            resultBuilder.Append(" ");
-            resultBuilder.Append(returningClause);
+            var hasReturningClause = !string.IsNullOrWhiteSpace(returningClause);
+            if (hasReturningClause)
+            {
+                resultBuilder.Append(" returning ");
+                resultBuilder.Append(returningClause);
+            }
             resultBuilder.Append(";");
             
             var result = resultBuilder.ToString();
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"result command: {result}");
 
-            return (Command: result, Parameters: commandParameters);
+            return new SqlCommandBuilderResult {
+                Command = result, 
+                Parameters = commandParameters,
+                IsThereReturningClause = hasReturningClause
+            };
         }
 
         /// <summary>
@@ -122,7 +130,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 if (propInfo.IsUpdatedAfterInsert)
                 {
                     var returningDelimiter = firstReturningColumn
-                        ? "returning "
+                        ? ""
                         : ", ";
 
                     returningClause += $"{returningDelimiter}\"{propInfo.DbColumnName}\"";
