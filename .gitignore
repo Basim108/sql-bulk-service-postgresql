@@ -7,4 +7,7 @@ Hrimsoft.SqlBulk.PostgreSql/obj
 Hrimsoft.SqlBulk.PostgreSql.Tests/bin
 Hrimsoft.SqlBulk.PostgreSql.Tests/obj
 
+Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/bin
+Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/obj
+
 *.DotSettings.user

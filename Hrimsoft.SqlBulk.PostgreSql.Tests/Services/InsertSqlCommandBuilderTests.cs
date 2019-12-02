@@ -12,7 +12,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
     public class InsertSqlCommandBuilderTests
     {
         private InsertSqlCommandBuilder _testService;
-        
+        private const string INSERT_PATTERN =
+@"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param\d+(,\s*@param\d+)*\s*\)\s*(,\s*\(\s*@param\d+(,\s*@param\d+)*\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
+
         [SetUp]
         public void SetUp()
         {
@@ -53,9 +55,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(command);
 
-            var pattern =
-                @"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param\d+(,\s*@param\d+)*\s*\)\s*(,\s*\(\s*@param\d+(,\s*@param\d+)*\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
-            Assert.IsTrue(Regex.IsMatch(command, pattern, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -69,9 +69,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(command);
 
-            var pattern =
-                @"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param\d+(,\s*@param\d+)*\s*\)\s*(,\s*\(\s*@param\d+(,\s*@param\d+)*\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
-            Assert.IsTrue(Regex.IsMatch(command, pattern, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -88,9 +86,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(command);
 
-            var pattern =
-@"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param\d+(,\s*@param\d+)*\s*\)\s*(,\s*\(\s*@param\d+(,\s*@param\d+)*\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
-            Assert.IsTrue(Regex.IsMatch(command, pattern, RegexOptions.IgnoreCase));
+            Assert.IsTrue(Regex.IsMatch(command, INSERT_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -118,7 +114,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             var (command, parameters) = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(command);
             
-            Assert.IsTrue(command.EndsWith("returning \"id\";"));
+            // pattern should match "id" whatever builder put the "id" column returning "id";  or returning ""value", "id"; 
+            var pattern = @"returning\s+(""\w+""\s*,\s*)*""id""";
+            Assert.IsTrue(Regex.IsMatch(command, pattern, RegexOptions.IgnoreCase));
         }
         
         [Test]

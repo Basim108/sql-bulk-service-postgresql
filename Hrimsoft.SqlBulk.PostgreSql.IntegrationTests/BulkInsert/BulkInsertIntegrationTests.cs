@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
+using Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
 {
     public class BulkInsertIntegrationTests
     {
@@ -37,8 +37,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             bulkServiceOptions.AddEntityProfile<TestEntity>(new SimpleEntityProfile());
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
+            var updateCommandBuilder = new UpdateSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder);
 
             var elements = new List<TestEntity>
             {
@@ -49,7 +50,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             };
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                await testService.InsertAllAsync(connection, elements, CancellationToken.None);
+                await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
             Assert.AreEqual(1, elements[0].Id);
@@ -80,8 +81,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             bulkServiceOptions.AddEntityProfile<TestEntity>(new SimpleEntityProfile());
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
+            var updateCommandBuilder = new UpdateSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder);
 
             var elements = new List<TestEntity>
             {
@@ -92,7 +94,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             };
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                await testService.InsertAllAsync(connection, elements, CancellationToken.None);
+                await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
             Assert.AreEqual(1, elements[0].Id);
@@ -123,8 +125,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             bulkServiceOptions.AddEntityProfile<TestEntity>(new SimpleEntityProfile());
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
+            var updateCommandBuilder = new UpdateSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder);
 
             var elements = new List<TestEntity>
             {
@@ -136,7 +139,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.IntegrationTests
             };
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                await testService.InsertAllAsync(connection, elements, CancellationToken.None);
+                await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
             Assert.AreEqual(1, elements[0].Id);

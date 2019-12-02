@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql.Tests", "Hrimsoft.SqlBulk.PostgreSql.Tests\Hrimsoft.SqlBulk.PostgreSql.Tests.csproj", "{177CD34D-2F64-4789-9053-CA342D42375C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql.IntegrationTests", "Hrimsoft.SqlBulk.PostgreSql.IntegrationTests\Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.csproj", "{9D679B1A-34FC-470F-915F-BC753C6BF2CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{177CD34D-2F64-4789-9053-CA342D42375C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{177CD34D-2F64-4789-9053-CA342D42375C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{177CD34D-2F64-4789-9053-CA342D42375C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D679B1A-34FC-470F-915F-BC753C6BF2CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D679B1A-34FC-470F-915F-BC753C6BF2CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D679B1A-34FC-470F-915F-BC753C6BF2CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D679B1A-34FC-470F-915F-BC753C6BF2CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

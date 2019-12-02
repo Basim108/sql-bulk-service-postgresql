@@ -1,10 +1,13 @@
 using System.Data;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
+namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
 {
-    public class SimpleEntityProfile: EntityProfile
+    /// <summary>
+    /// Entity profile that defines properties that have to be included into the returning clause
+    /// </summary>
+    public class ReturningEntityProfile: EntityProfile
     {
-        public SimpleEntityProfile(int maximumSentElements=0)
+        public ReturningEntityProfile(int maximumSentElements=0)
             :base(typeof(TestEntity))
         {
             this.MaximumSentElements = maximumSentElements;
@@ -16,11 +19,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
                 .ThatIsPrivateKey()
                 .HasColumnType(DbType.Int32);
             this.HasProperty<TestEntity, string>(entity => entity.RecordId)
+                .MustBeUpdatedAfterInsert()
+                .MustBeUpdatedAfterUpdate()
                 .HasColumnType(DbType.String);
             this.HasProperty<TestEntity, string>(entity => entity.SensorId)
+                .MustBeUpdatedAfterInsert()
                 .HasColumnType(DbType.String);
             this.HasProperty<TestEntity, int>(entity => entity.Value)
-                .HasColumnType(DbType.Int32);
+                .HasColumnType(DbType.Int32)
+                .MustBeUpdatedAfterUpdate();
         }
     }
 }

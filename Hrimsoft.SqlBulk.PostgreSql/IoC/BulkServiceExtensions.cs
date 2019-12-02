@@ -20,12 +20,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             var options = new BulkServiceOptions();
             setupAction(options);
+
+            services.AddTransient<IInsertSqlCommandBuilder, InsertSqlCommandBuilder>();
+            services.AddTransient<IUpdateSqlCommandBuilder, UpdateSqlCommandBuilder>();
             
             services.AddSingleton<IPostgreSqlBulkService>(
                 sp => new NpgsqlCommandsBulkService(
                     options,
                     sp.GetRequiredService<ILoggerFactory>(),
-                    sp.GetRequiredService<IInsertSqlCommandBuilder>()));
+                    sp.GetRequiredService<IInsertSqlCommandBuilder>(),
+                    sp.GetRequiredService<IUpdateSqlCommandBuilder>()));
             
             return services;
         }
