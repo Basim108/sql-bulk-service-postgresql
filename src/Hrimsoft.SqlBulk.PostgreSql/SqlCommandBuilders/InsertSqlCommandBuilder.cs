@@ -32,7 +32,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             where TEntity : class
         {
             if (elements.Count == 0)
-                throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
+                throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -50,7 +50,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"approximateEntireCommandLength: {approximateEntireCommandLength}");
 
-            var commandParameters = new List<NpgsqlParameter>(); 
+            var commandParameters = new List<NpgsqlParameter>();
             var resultBuilder = new StringBuilder(approximateEntireCommandLength);
             resultBuilder.Append(command);
             var elementIndex = -1;
@@ -58,8 +58,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 while (elementsEnumerator.MoveNext())
                 {
-                    elementIndex++;
                     var item = elementsEnumerator.Current;
+                    if (item == null)
+                        continue;
+
+                    elementIndex++;
                     cancellationToken.ThrowIfCancellationRequested();
                     resultBuilder.Append('(');
                     var firstPropertyValue = true;
@@ -90,20 +93,25 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
             }
 
+            if (elementIndex == -1)
+                throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
+
             var hasReturningClause = !string.IsNullOrWhiteSpace(returningClause);
             if (hasReturningClause)
             {
                 resultBuilder.Append(" returning ");
                 resultBuilder.Append(returningClause);
             }
+
             resultBuilder.Append(";");
-            
+
             var result = resultBuilder.ToString();
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"result command: {result}");
 
-            return new SqlCommandBuilderResult {
-                Command = result, 
+            return new SqlCommandBuilderResult
+            {
+                Command = result,
                 Parameters = commandParameters,
                 IsThereReturningClause = hasReturningClause
             };

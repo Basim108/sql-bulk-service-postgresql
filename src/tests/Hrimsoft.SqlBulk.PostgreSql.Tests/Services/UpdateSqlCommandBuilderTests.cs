@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -257,6 +258,42 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             var pattern = @"update\s+""unit_tests"".""simple_test_entity""\s+set";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
+        }
+        
+        [Test]
+        public void Should_throw_exception_for_empty_elements()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            entityProfile.HasProperty<TestEntity, int>(x => x.Id);
+            entityProfile.ToTable("test_entity", "custom");
+            var elements = new List<TestEntity>();
+            Assert.Throws<ArgumentException>(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
+        }
+        
+        [Test]
+        public void Should_throw_exception_when_elements_collection_items_are_all_null()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            entityProfile.HasProperty<TestEntity, int>(x => x.Id);
+            entityProfile.ToTable("test_entity", "custom");
+            var elements = new List<TestEntity> { null, null };
+            Assert.Throws<ArgumentException>(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
+        }
+        
+        [Test]
+        public void Should_not_throw_exception_when_at_least_one_item_is_not_null()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            entityProfile.HasProperty<TestEntity, int>(x => x.Id)
+                         .ThatIsPrivateKey();
+            entityProfile.ToTable("test_entity", "custom");
+            var elements = new List<TestEntity>
+            {
+                null,
+                new TestEntity {RecordId = "rec-01"},
+                null
+            };
+            Assert.DoesNotThrow(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
         }
     }
 }

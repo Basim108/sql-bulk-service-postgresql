@@ -46,47 +46,60 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             cancellationToken.ThrowIfCancellationRequested();
             var isThereReturningClause = false;
+            var allElementsAreNull = true;
             using (var elementsEnumerator = elements.GetEnumerator())
             {
+                var thereIsMoreElements = true;
                 // ignore all null items until find the first not null item
-                while (elementsEnumerator.Current == null)
-                    elementsEnumerator.MoveNext();
-
-                var (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
-                isThereReturningClause = hasReturningClause;
-                allItemsParameters.AddRange(itemParameters);
-
-                var approximateEntireCommandLength = commandForOneItem.Length * elements.Count;
-
-                if (_logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug($"approximateEntireCommandLength: {approximateEntireCommandLength}");
-
-                var resultBuilder = new StringBuilder(approximateEntireCommandLength);
-                resultBuilder.AppendLine(commandForOneItem);
-
-                while (elementsEnumerator.MoveNext())
+                while (elementsEnumerator.Current == null && thereIsMoreElements)
                 {
-                    // ignore all null items 
-                    if (elementsEnumerator.Current == null)
-                        continue;
-
-                    (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(
-                        entityProfile, 
-                        elementsEnumerator.Current, 
-                        resultBuilder, 
-                        allItemsParameters.Count);
-
-                    allItemsParameters.AddRange(itemParameters);
-                    resultBuilder.AppendLine(commandForOneItem);
+                    thereIsMoreElements = elementsEnumerator.MoveNext();
                 }
 
-                result = resultBuilder.ToString();
-                if (_logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug($"result command: {result}");
+                if (thereIsMoreElements)
+                {
+                    allElementsAreNull = false;
+
+                    var (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
+                    isThereReturningClause = hasReturningClause;
+                    allItemsParameters.AddRange(itemParameters);
+
+                    var approximateEntireCommandLength = commandForOneItem.Length * elements.Count;
+
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                        _logger.LogDebug($"approximateEntireCommandLength: {approximateEntireCommandLength}");
+
+                    var resultBuilder = new StringBuilder(approximateEntireCommandLength);
+                    resultBuilder.AppendLine(commandForOneItem);
+
+                    while (elementsEnumerator.MoveNext())
+                    {
+                        // ignore all null items 
+                        if (elementsEnumerator.Current == null)
+                            continue;
+
+                        (commandForOneItem, itemParameters, hasReturningClause) = GenerateForItem(
+                            entityProfile,
+                            elementsEnumerator.Current,
+                            resultBuilder,
+                            allItemsParameters.Count);
+
+                        allItemsParameters.AddRange(itemParameters);
+                        resultBuilder.AppendLine(commandForOneItem);
+                    }
+
+                    result = resultBuilder.ToString();
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                        _logger.LogDebug($"result command: {result}");
+                }
             }
 
-            return new SqlCommandBuilderResult{
-                Command = result, 
+            if (allElementsAreNull)
+                throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
+
+            return new SqlCommandBuilderResult
+            {
+                Command = result,
                 Parameters = allItemsParameters,
                 IsThereReturningClause = isThereReturningClause
             };
@@ -101,7 +114,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="lastUsedParamIndex">As this method is called for each item, this argument indecates the last used parameter index</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
         public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause) GenerateForItem<TEntity>(
-            [NotNull] EntityProfile entityProfile, 
+            [NotNull] EntityProfile entityProfile,
             [NotNull] TEntity item,
             StringBuilder externalBuilder,
             int lastUsedParamIndex)
@@ -165,10 +178,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             if (firstWhereExpression)
                 throw new SqlBulkServiceException($"There is no private key defined for the entity type: '{typeof(TEntity).FullName}'");
-            
+
             commandBuilder.Append(whereClause);
-            
-            if(!firstReturningColumn)
+
+            if (!firstReturningColumn)
                 commandBuilder.Append(returningClause);
             commandBuilder.Append(";");
 
