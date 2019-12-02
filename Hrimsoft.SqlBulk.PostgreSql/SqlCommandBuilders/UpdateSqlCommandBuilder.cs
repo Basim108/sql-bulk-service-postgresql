@@ -52,7 +52,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 while (elementsEnumerator.Current == null)
                     elementsEnumerator.MoveNext();
 
-                var (commandForOneItem, itemParameters) = GenerateForItem(entityProfile, elementsEnumerator.Current, null);
+                var (commandForOneItem, itemParameters) = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
                 allItemsParameters.AddRange(itemParameters);
 
                 var approximateEntireCommandLength = commandForOneItem.Length * elements.Count;
@@ -69,7 +69,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (elementsEnumerator.Current == null)
                         continue;
 
-                    (commandForOneItem, itemParameters) = GenerateForItem(entityProfile, elementsEnumerator.Current, null);
+                    (commandForOneItem, itemParameters) = GenerateForItem(
+                        entityProfile, 
+                        elementsEnumerator.Current, 
+                        resultBuilder, 
+                        allItemsParameters.Count);
 
                     allItemsParameters.AddRange(itemParameters);
                     resultBuilder.AppendLine(commandForOneItem);
@@ -89,11 +93,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="item">an instance that has to be updated to the database</param>
         /// <param name="externalBuilder">Builder to which the generated for an item command will be appended</param>
+        /// <param name="lastUsedParamIndex">As this method is called for each item, this argument indecates the last used parameter index</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
         public (string Command, ICollection<NpgsqlParameter> Parameters) GenerateForItem<TEntity>(
             [NotNull] EntityProfile entityProfile, 
             [NotNull] TEntity item,
-            StringBuilder externalBuilder)
+            StringBuilder externalBuilder,
+            int lastUsedParamIndex)
             where TEntity : class
         {
             var commandBuilder = externalBuilder ?? new StringBuilder(192);
@@ -113,7 +119,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var whereDelimiter = firstWhereExpression
                         ? ""
                         : ",";
-                    var idParamName = "@param" + parameters.Count;
+                    var idParamName = "@param" + (parameters.Count + lastUsedParamIndex);
                     whereClause += $"{whereDelimiter}\"{propInfo.DbColumnName}\"={idParamName}";
 
                     parameters.Add(new NpgsqlParameter(idParamName, propInfo.DbColumnType)
@@ -141,7 +147,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     ? ""
                     : ",";
 
-                var setParamName = "@param" + parameters.Count;
+                var setParamName = "@param" + (parameters.Count + lastUsedParamIndex);
                 commandBuilder.Append($"{setExpressionDelimiter}\"{propInfo.DbColumnName}\"={setParamName}");
 
                 parameters.Add(new NpgsqlParameter(setParamName, propInfo.DbColumnType)
@@ -152,8 +158,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 firstSetExpression = false;
             }
 
+            if (firstWhereExpression)
+                throw new SqlBulkServiceException($"There is no private key defined for the entity type: '{typeof(TEntity).FullName}'");
+            
             commandBuilder.Append(whereClause);
-            commandBuilder.Append(returningClause);
+            
+            if(!firstReturningColumn)
+                commandBuilder.Append(returningClause);
             commandBuilder.Append(";");
 
             var command = externalBuilder == null
