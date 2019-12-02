@@ -1,13 +1,13 @@
 .idea
 .vs
 
-Hrimsoft.SqlBulk.PostgreSql/bin
-Hrimsoft.SqlBulk.PostgreSql/obj
+src/Hrimsoft.SqlBulk.PostgreSql/bin
+src/Hrimsoft.SqlBulk.PostgreSql/obj
 
-Hrimsoft.SqlBulk.PostgreSql.Tests/bin
-Hrimsoft.SqlBulk.PostgreSql.Tests/obj
+src/tests/Hrimsoft.SqlBulk.PostgreSql.Tests/bin
+src/tests/Hrimsoft.SqlBulk.PostgreSql.Tests/obj
 
-Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/bin
-Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/obj
+src/tests/Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/bin
+src/tests/Hrimsoft.SqlBulk.PostgreSql.IntegrationTests/obj
 
 *.DotSettings.user

@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql", "Hrimsoft.SqlBulk.PostgreSql\Hrimsoft.SqlBulk.PostgreSql.csproj", "{E28EB84A-D45E-4AE3-B7F6-F961B869D6D1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A5A1AF75-AA82-4101-9A0F-6918D9895C1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql.IntegrationTests", "tests\Hrimsoft.SqlBulk.PostgreSql.IntegrationTests\Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.csproj", "{CDA06F7A-12CE-4490-86AF-5C1225A42341}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql.Tests", "tests\Hrimsoft.SqlBulk.PostgreSql.Tests\Hrimsoft.SqlBulk.PostgreSql.Tests.csproj", "{054E56A1-FE7D-408A-9B76-7030513B7F97}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E28EB84A-D45E-4AE3-B7F6-F961B869D6D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E28EB84A-D45E-4AE3-B7F6-F961B869D6D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E28EB84A-D45E-4AE3-B7F6-F961B869D6D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E28EB84A-D45E-4AE3-B7F6-F961B869D6D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDA06F7A-12CE-4490-86AF-5C1225A42341}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDA06F7A-12CE-4490-86AF-5C1225A42341}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDA06F7A-12CE-4490-86AF-5C1225A42341}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDA06F7A-12CE-4490-86AF-5C1225A42341}.Release|Any CPU.Build.0 = Release|Any CPU
+		{054E56A1-FE7D-408A-9B76-7030513B7F97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{054E56A1-FE7D-408A-9B76-7030513B7F97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{054E56A1-FE7D-408A-9B76-7030513B7F97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{054E56A1-FE7D-408A-9B76-7030513B7F97}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CDA06F7A-12CE-4490-86AF-5C1225A42341} = {A5A1AF75-AA82-4101-9A0F-6918D9895C1B}
+		{054E56A1-FE7D-408A-9B76-7030513B7F97} = {A5A1AF75-AA82-4101-9A0F-6918D9895C1B}
+	EndGlobalSection
+EndGlobal
