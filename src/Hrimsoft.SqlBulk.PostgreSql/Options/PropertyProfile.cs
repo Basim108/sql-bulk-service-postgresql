@@ -12,14 +12,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     public class PropertyProfile
     {
         /// <inheritdoc />
-        public PropertyProfile(string column, [NotNull] LambdaExpression propertyExpression)
+        public PropertyProfile(string column, [NotNull] LambdaExpression propertyExpression, bool isPartOfUniqueConstraint = false)
         {
             if (string.IsNullOrWhiteSpace(column))
                 throw new ArgumentNullException(nameof(column));
             
             this.DbColumnName = column;
             this.PropertyExpression = propertyExpression;
+            this.IsPartOfUniqueConstraint = isPartOfUniqueConstraint;
         }
+
+        /// <summary>
+        /// This property is a part of unique constraint.
+        /// Is used in upsert constructions
+        /// </summary>
+        public bool IsPartOfUniqueConstraint { get; }
         
         /// <summary>
         /// If true then the value of the property that represents this profile will be updated after insert operation.

@@ -46,6 +46,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// Collection of properties 
         /// </summary>
         public IDictionary<string, PropertyProfile> Properties { get; }
+        
+        /// <summary>
+        /// Information about properties that all together make a unique value among all  the entity instances in the database
+        /// </summary>
+        public EntityUniqueConstraint UniqueConstraint { get; private set; }
 
         /// <summary>
         /// Sets database table name that has to be mapped onto this entity
@@ -64,12 +69,42 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         }
 
         /// <summary>
+        /// Adds a database defined unique constraint 
+        /// </summary>
+        public void HasUniqueConstraint([NotNull] string name)
+        {
+            UniqueConstraint = new EntityUniqueConstraint(name);
+        }
+
+        /// <summary>
+        /// Adds a mapping a property to its snake cased column equivalent 
+        /// </summary>
+        /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
+        public PropertyProfile HasPropertyAsPartOfUniqueConstraint<TEntity, TProperty>([NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
+        {
+            return HasPropertyAsPartOfUniqueConstraint("", propertyExpression);
+        }
+
+        /// <summary>
+        /// Adds a mapping a property to its snake cased column equivalent 
+        /// </summary>
+        /// <param name="column">Column name in database table</param>
+        /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
+        public PropertyProfile HasPropertyAsPartOfUniqueConstraint<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
+        {
+            var propertyProfile = HasProperty(column, propertyExpression, true);
+            UniqueConstraint.UniqueProperties.Add(propertyProfile);
+            
+            return propertyProfile;
+        }
+        
+        /// <summary>
         /// Adds a mapping a property to its snake cased column equivalent 
         /// </summary>
         /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
         public PropertyProfile HasProperty<TEntity, TProperty>([NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
         {
-            return HasProperty("", propertyExpression);
+            return HasProperty("", propertyExpression, false);
         }
 
         /// <summary>
@@ -77,7 +112,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// </summary>
         /// <param name="column">Column name in database table</param>
         /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
-        public PropertyProfile HasProperty<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
+        /// <param name="isPartOfUniqueConstraint">Is this property a part of unique constraint</param>
+        public PropertyProfile HasProperty<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression, bool isPartOfUniqueConstraint)
         {
             var propertyName = "";
 
