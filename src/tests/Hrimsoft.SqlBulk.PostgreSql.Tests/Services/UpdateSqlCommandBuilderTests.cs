@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
+using NpgsqlTypes;
 using NUnit.Framework;
 
 namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
@@ -225,8 +226,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.AreEqual(4, commandResult.Parameters.Count);
             Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
             Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.DbType == DbType.Int32 && (int)p.Value == 12));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.DbType == DbType.Int32 && (int)p.Value == 10));
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 12));
+            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 10));
         }
         
         [Test]
@@ -242,8 +243,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Parameters);
             
             Assert.AreEqual(4, commandResult.Parameters.Count);
-            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.DbType == DbType.String).ToList().Count);
-            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.DbType == DbType.Int32).ToList().Count);
+            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Text).ToList().Count);
+            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
         }
         
         [Test]
@@ -294,6 +295,26 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
                 null
             };
             Assert.DoesNotThrow(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
+        }
+        
+        [Test]
+        public void Should_put_all_private_keys_into_where_clause()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            entityProfile.HasProperty<TestEntity, int>(x => x.Id)
+                .ThatIsPrivateKey();
+            entityProfile.HasProperty<TestEntity, string>(x => x.RecordId)
+                .ThatIsPrivateKey();
+            var elements = new List<TestEntity>
+            {
+                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01"}
+            };
+            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commandResult.Command);
+            
+            // pattern should match "id" whatever builder put the "id" column in any order where "id" = @param1;  or where ""value"=@param1, "id"=@param2;
+            var pattern = "where\\s+(\"id\"\\s*=\\s*@param\\d+|\\s*\"record_id\"\\s*=\\s*@param\\d+)\\s*(,\\s*\"id\"\\s*=\\s*@param\\d+|,\\s*\"record_id\"\\s*=\\s*@param\\d+)";
+            Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
         }
     }
 }
