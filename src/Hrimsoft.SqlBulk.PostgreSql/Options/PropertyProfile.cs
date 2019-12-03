@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
 {
@@ -55,7 +56,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Database column type
         /// </summary>
-        public DbType DbColumnType { get; private set;  }
+        public NpgsqlDbType DbColumnType { get; private set;  }
         
         /// <summary>
         /// When applied, the value of the column that represents this property will be included after insert in returning clause
@@ -98,7 +99,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Defines which database column type should be used for this property
         /// </summary>
-        public PropertyProfile HasColumnType([NotNull] DbType columnType)
+        public PropertyProfile HasColumnType([NotNull] NpgsqlDbType columnType)
         {
             this.DbColumnType = columnType;
             return this;

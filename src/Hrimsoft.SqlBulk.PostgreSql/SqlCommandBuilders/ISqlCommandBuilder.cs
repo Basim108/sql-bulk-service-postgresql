@@ -17,7 +17,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql command and a collection of database parameters</returns>
-        (string Command, ICollection<NpgsqlParameter> Parameters) Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
+        [NotNull]SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class;
     }
 }

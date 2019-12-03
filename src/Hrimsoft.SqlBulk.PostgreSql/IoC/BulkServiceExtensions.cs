@@ -23,13 +23,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             services.AddTransient<IInsertSqlCommandBuilder, InsertSqlCommandBuilder>();
             services.AddTransient<IUpdateSqlCommandBuilder, UpdateSqlCommandBuilder>();
+            services.AddTransient<IDeleteSqlCommandBuilder, SimpleDeleteSqlCommandBuilder>();
             
             services.AddSingleton<IPostgreSqlBulkService>(
                 sp => new NpgsqlCommandsBulkService(
                     options,
                     sp.GetRequiredService<ILoggerFactory>(),
                     sp.GetRequiredService<IInsertSqlCommandBuilder>(),
-                    sp.GetRequiredService<IUpdateSqlCommandBuilder>()));
+                    sp.GetRequiredService<IUpdateSqlCommandBuilder>(),
+                    sp.GetRequiredService<IDeleteSqlCommandBuilder>()));
             
             return services;
         }

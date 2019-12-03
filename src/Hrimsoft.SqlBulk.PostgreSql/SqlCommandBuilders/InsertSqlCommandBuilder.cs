@@ -28,11 +28,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql inset command and collection of database parameters</returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters) Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
+        public SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class
         {
             if (elements.Count == 0)
-                throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
+                throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -50,7 +50,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"approximateEntireCommandLength: {approximateEntireCommandLength}");
 
-            var commandParameters = new List<NpgsqlParameter>(); 
+            var commandParameters = new List<NpgsqlParameter>();
             var resultBuilder = new StringBuilder(approximateEntireCommandLength);
             resultBuilder.Append(command);
             var elementIndex = -1;
@@ -58,8 +58,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 while (elementsEnumerator.MoveNext())
                 {
-                    elementIndex++;
                     var item = elementsEnumerator.Current;
+                    if (item == null)
+                        continue;
+
+                    elementIndex++;
                     cancellationToken.ThrowIfCancellationRequested();
                     resultBuilder.Append('(');
                     var firstPropertyValue = true;
@@ -90,15 +93,28 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
             }
 
-            resultBuilder.Append(" ");
-            resultBuilder.Append(returningClause);
+            if (elementIndex == -1)
+                throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
+
+            var hasReturningClause = !string.IsNullOrWhiteSpace(returningClause);
+            if (hasReturningClause)
+            {
+                resultBuilder.Append(" returning ");
+                resultBuilder.Append(returningClause);
+            }
+
             resultBuilder.Append(";");
-            
+
             var result = resultBuilder.ToString();
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"result command: {result}");
 
-            return (Command: result, Parameters: commandParameters);
+            return new SqlCommandBuilderResult
+            {
+                Command = result,
+                Parameters = commandParameters,
+                IsThereReturningClause = hasReturningClause
+            };
         }
 
         /// <summary>
@@ -122,7 +138,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 if (propInfo.IsUpdatedAfterInsert)
                 {
                     var returningDelimiter = firstReturningColumn
-                        ? "returning "
+                        ? ""
                         : ", ";
 
                     returningClause += $"{returningDelimiter}\"{propInfo.DbColumnName}\"";

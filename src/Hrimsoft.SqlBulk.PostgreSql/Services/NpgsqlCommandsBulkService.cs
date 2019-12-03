@@ -19,19 +19,38 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         private readonly BulkServiceOptions _options;
         private readonly IInsertSqlCommandBuilder _insertCommandBuilder;
         private readonly IUpdateSqlCommandBuilder _updateCommandBuilder;
+        private readonly IDeleteSqlCommandBuilder _deleteCommandBuilder;
 
         public NpgsqlCommandsBulkService(
             BulkServiceOptions options,
             ILoggerFactory loggerFactory,
             IInsertSqlCommandBuilder insertCommandBuilder,
-            IUpdateSqlCommandBuilder updateCommandBuilder)
+            IUpdateSqlCommandBuilder updateCommandBuilder,
+            IDeleteSqlCommandBuilder deleteCommandBuilder)
         {
             _options = options;
             _insertCommandBuilder = insertCommandBuilder;
             _updateCommandBuilder = updateCommandBuilder;
+            _deleteCommandBuilder = deleteCommandBuilder;
             _logger = loggerFactory.CreateLogger<NpgsqlCommandsBulkService>();
         }
-
+        
+        /// <summary>
+        /// Delete elements
+        /// </summary>
+        /// <param name="connection">Connection to a database</param>
+        /// <param name="elements">Elements that have to be deleted</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
+        public async Task DeleteAsync<TEntity>(
+            [NotNull] NpgsqlConnection connection,
+            [NotNull] ICollection<TEntity> elements,
+            CancellationToken cancellationToken)
+            where TEntity : class
+        {
+            await ExecuteOperationAsync(_deleteCommandBuilder, connection, elements, cancellationToken);
+        }
+        
         /// <summary>
         /// Update elements
         /// </summary>
@@ -125,14 +144,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 await connection.OpenAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
-            var (commandText, parameters) = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            using (var command = new NpgsqlCommand(commandText, connection))
+            var commandResult = commandBuilder.Generate(elements, entityProfile, cancellationToken);
+            using (var command = new NpgsqlCommand(commandResult.Command, connection))
             {
-                foreach (var param in parameters)
+                foreach (var param in commandResult.Parameters)
                 {
                     command.Parameters.Add(param);
                 }
 
+                //TODO: Make an option where a user will be able to set transaction behaviour for each portion. Whether should we ignore situation when some portions execution failed or not.
                 var transaction = connection.BeginTransaction();
                 try
                 {
@@ -148,8 +168,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                 _logger.LogError(message);
                                 throw new SqlBulkServiceException(message);
                             }
-
-                            await UpdatePropertiesAfterCommandExecutionAsync(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
+                            
+                            if(commandResult.IsThereReturningClause)
+                                await UpdatePropertiesAfterCommandExecutionAsync(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
                         }
 
                         await reader.CloseAsync();
@@ -159,7 +180,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "bulk command execution failed");
                     await transaction.RollbackAsync(cancellationToken);
+                    //TODO: Make an option where a user will be able to select the behaviour of this situation. ignore it or rise an exception higher
                 }
             }
 

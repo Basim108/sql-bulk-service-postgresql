@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 
@@ -99,8 +100,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new SqlBulkServiceException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression);
+            propertyProfile.SetDbColumnType(typeof(TProperty));
             this.Properties.Add(columnName, propertyProfile);
-
+            
             return propertyProfile;
         }
     }
