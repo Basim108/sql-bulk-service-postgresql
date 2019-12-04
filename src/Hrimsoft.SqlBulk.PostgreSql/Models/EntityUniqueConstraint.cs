@@ -28,7 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Database defined constraint name
         /// </summary>
-        public string Name { get; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Value of all these properties together are unique in the table

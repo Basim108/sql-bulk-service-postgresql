@@ -73,7 +73,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// </summary>
         public void HasUniqueConstraint([NotNull] string name)
         {
-            UniqueConstraint = new EntityUniqueConstraint(name);
+            if (UniqueConstraint == null)
+                UniqueConstraint = new EntityUniqueConstraint(name);
+            else
+                UniqueConstraint.Name = name;
         }
 
         /// <summary>
@@ -93,6 +96,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public PropertyProfile HasPropertyAsPartOfUniqueConstraint<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
         {
             var propertyProfile = HasProperty(column, propertyExpression, true);
+            if(UniqueConstraint == null)
+                UniqueConstraint = new EntityUniqueConstraint(propertyProfile);
+            
             UniqueConstraint.UniqueProperties.Add(propertyProfile);
             
             return propertyProfile;
@@ -105,6 +111,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public PropertyProfile HasProperty<TEntity, TProperty>([NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
         {
             return HasProperty("", propertyExpression, false);
+        }
+        
+        /// <summary>
+        /// Adds a specific mapping 
+        /// </summary>
+        /// <param name="column">Column name in database table</param>
+        /// <param name="propertyExpression">Expression to the entity's property that has to be mapped onto that db column</param>
+        public PropertyProfile HasProperty<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
+        {
+            return HasProperty(column, propertyExpression, false);
         }
 
         /// <summary>
@@ -135,7 +151,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (this.Properties.ContainsKey(columnName))
                 throw new SqlBulkServiceException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
-            var propertyProfile = new PropertyProfile(columnName, propertyExpression);
+            var propertyProfile = new PropertyProfile(columnName, propertyExpression, isPartOfUniqueConstraint);
             propertyProfile.SetDbColumnType(typeof(TProperty));
             this.Properties.Add(columnName, propertyProfile);
             

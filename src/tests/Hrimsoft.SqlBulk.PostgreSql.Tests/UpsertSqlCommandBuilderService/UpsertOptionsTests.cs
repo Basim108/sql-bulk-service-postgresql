@@ -5,9 +5,9 @@ using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
 {
-    public class UpsertSqlCommandBuilderTests
+    public class UpsertOptionsTests
     {
         private UpsertSqlCommandBuilder _testService;
         
@@ -15,8 +15,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
         public void SetUp()
         {
             _testService = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
-        }
-
+        }      
+        
         [Test]
         public void Upsert_should_not_pass_entities_without_unique_constraint()
         {
@@ -37,5 +37,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             var elements = new List<TestEntity>();
             Assert.Throws<ArgumentException>(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
         }
+
     }
 }
