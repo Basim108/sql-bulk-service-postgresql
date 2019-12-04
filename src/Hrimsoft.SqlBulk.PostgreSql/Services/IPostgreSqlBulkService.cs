@@ -39,5 +39,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
         Task DeleteAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
             where TEntity : class;
+
+        /// <summary>
+        /// Insert new elements and update those already existed ones 
+        /// </summary>
+        /// <param name="connection">Connection to a database</param>
+        /// <param name="elements">Elements that have to be inserted or updated</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TEntity">Type of instances that have to be inserted or updated</typeparam>
+        /// <returns>The same collection of items with updated from the storage properties that marked as mast update after insert or must update after update (see PropertyProfile.MustBeUpdatedAfterUpdate, PropertyProfile.MustBeUpdatedAfterInsert)</returns>
+        Task<ICollection<TEntity>> UpsertAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+            where TEntity : class;
     }
 }
