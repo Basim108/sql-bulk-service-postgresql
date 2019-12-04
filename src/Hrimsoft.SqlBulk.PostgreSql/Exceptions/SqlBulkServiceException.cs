@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
 {
@@ -7,9 +8,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class SqlBulkServiceException: Exception
     {
+        /// <inheritdoc />
         public SqlBulkServiceException(string message) :base(message) { }
 
-        public SqlBulkServiceException(string message, Exception innerException)
+        /// <inheritdoc />
+        public SqlBulkServiceException(string message, [NotNull] Exception innerException)
         :base(message, innerException) { }
+
+        /// <inheritdoc />
+        public SqlBulkServiceException([NotNull] Exception innerException)
+            :base(innerException.Message, innerException) { }
     }
 }

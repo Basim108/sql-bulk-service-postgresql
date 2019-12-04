@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -45,13 +46,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="elements">Elements that have to be deleted</param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
-        public async Task DeleteAsync<TEntity>(
+        /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns> 
+        public async Task<ICollection<TEntity>> DeleteAsync<TEntity>(
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            await ExecuteOperationAsync(_deleteCommandBuilder, connection, elements, cancellationToken);
+            return await ExecuteOperationAsync(_deleteCommandBuilder, connection, elements, cancellationToken);
         }
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="elements">Elements that have to be inserted or updated</param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be inserted or updated</typeparam>
-        /// <returns>The same collection of items with updated from the storage properties that marked as mast update after insert or must update after update (see PropertyProfile.MustBeUpdatedAfterUpdate, PropertyProfile.MustBeUpdatedAfterInsert)</returns>
+        /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> UpsertAsync<TEntity>(
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
@@ -78,7 +80,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="elements">Elements that have to be updated</param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be updated</typeparam>
-        /// <returns>The same collection of items with updated from the storage properties that marked as mast update after insert (see PropertyProfile.MustBeUpdatedAfterUpdate)</returns>
+        /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> UpdateAsync<TEntity>(
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
@@ -95,7 +97,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="elements">Elements that have to be inserted</param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be inserted</typeparam>
-        /// <returns>The same collection of items with updated from the storage properties that marked as mast update after update (see PropertyProfile.MustBeUpdatedAfterInsert)</returns>
+        /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> InsertAsync<TEntity>(
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
@@ -117,16 +119,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
 
             var entityProfile = _options.SupportedEntityTypes[entityType];
-            var maximumEntitiesPerSent = entityProfile.MaximumSentElements > 0
-                ? entityProfile.MaximumSentElements
-                : _options.MaximumSentElements;
+            var maximumEntitiesPerSent = GetCurrentMaximumSentElements(entityProfile);
 
             var result = new List<TEntity>(elements.Count);
 
             if (maximumEntitiesPerSent == 0)
             {
-                var subset = await ExecutePortionAsync(commandBuilder, connection, elements, entityProfile, cancellationToken);
-                result.AddRange(subset);
+                var notOperatedItems = await ExecutePortionAsync(commandBuilder, connection, elements, entityProfile, cancellationToken);
+                result.AddRange(notOperatedItems);
             }
             else
             {
@@ -134,8 +134,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 for (var i = 0; i < iterations; i++)
                 {
                     var portion = elements.Skip(i * maximumEntitiesPerSent).Take(maximumEntitiesPerSent).ToList();
-                    var subset = await ExecutePortionAsync(commandBuilder, connection, portion, entityProfile, cancellationToken);
-                    result.AddRange(subset);
+                    var notOperatedItems = await ExecutePortionAsync(commandBuilder, connection, portion, entityProfile, cancellationToken);
+                    
+                    result.AddRange(notOperatedItems);
                 }
             }
 
@@ -172,8 +173,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     command.Parameters.Add(param);
                 }
 
-                //TODO: Make an option where a user will be able to set transaction behaviour for each portion. Whether should we ignore situation when some portions execution failed or not.
-                var transaction = connection.BeginTransaction();
+                var currentFailureStrategy = GetCurrentFailureStrategy(entityProfile); 
+                var transaction = currentFailureStrategy == FailureStrategies.StopEverythingAndRollback
+                    ? connection.BeginTransaction()
+                    : null;
                 try
                 {
                     using (var reader = await command.ExecuteReaderAsync(cancellationToken))
@@ -190,23 +193,41 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                             }
                             
                             if(commandResult.IsThereReturningClause)
-                                await UpdatePropertiesAfterCommandExecutionAsync(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
+                                UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
                         }
 
                         await reader.CloseAsync();
                     }
 
-                    await transaction.CommitAsync(cancellationToken);
+                    if(transaction != null)
+                        await transaction.CommitAsync(cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "bulk command execution failed");
-                    await transaction.RollbackAsync(cancellationToken);
-                    //TODO: Make an option where a user will be able to select the behaviour of this situation. ignore it or rise an exception higher
+                    _logger.LogError(ex, "Bulk command execution failed");
+                    
+                    if(transaction != null)
+                        await transaction.RollbackAsync(cancellationToken);
+                    
+                    if (currentFailureStrategy == FailureStrategies.StopEverything ||
+                        currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
+                    {
+                        throw new SqlBulkServiceException(ex);
+                    }
                 }
             }
 
             return elements;
+        }
+
+        public FailureStrategies GetCurrentFailureStrategy([NotNull] EntityProfile entityProfile)
+        {
+            return entityProfile.FailureStrategy ?? _options.FailureStrategy;
+        }
+        
+        public int GetCurrentMaximumSentElements([NotNull] EntityProfile entityProfile)
+        {
+            return entityProfile.MaximumSentElements ?? _options.MaximumSentElements;
         }
 
         /// <summary>
@@ -218,7 +239,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
-        public async Task UpdatePropertiesAfterCommandExecutionAsync<TEntity>(
+        public void UpdatePropertiesAfterCommandExecution<TEntity>(
             NpgsqlDataReader reader,
             TEntity item,
             IDictionary<string, PropertyProfile> propertyProfiles,
