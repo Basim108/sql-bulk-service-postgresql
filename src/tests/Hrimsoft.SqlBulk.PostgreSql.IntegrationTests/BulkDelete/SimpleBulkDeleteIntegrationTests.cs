@@ -52,9 +52,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkDelete
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
             var updateCommandBuilder = new Mock<IUpdateSqlCommandBuilder>().Object;
-            var simpleDeleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var deleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder, simpleDeleteCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(
+                bulkServiceOptions, 
+                NullLoggerFactory.Instance, 
+                insertCommandBuilder, 
+                updateCommandBuilder, 
+                deleteCommandBuilder, 
+                upsertCommandBuilder);
 
             var elements = new List<TestEntity>
             {
@@ -83,9 +90,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkDelete
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
             var updateCommandBuilder = new Mock<IUpdateSqlCommandBuilder>().Object;
-            var simpleDeleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var deleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder, simpleDeleteCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(
+                bulkServiceOptions, 
+                NullLoggerFactory.Instance, 
+                insertCommandBuilder, 
+                updateCommandBuilder, 
+                deleteCommandBuilder, 
+                upsertCommandBuilder);
 
             var elements = new List<TestEntity>
             {
@@ -116,9 +130,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkDelete
 
             var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
             var updateCommandBuilder = new Mock<IUpdateSqlCommandBuilder>().Object;
-            var simpleDeleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var deleteCommandBuilder = new SimpleDeleteSqlCommandBuilder(NullLoggerFactory.Instance);
+            var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
-            var testService = new NpgsqlCommandsBulkService(bulkServiceOptions, NullLoggerFactory.Instance, insertCommandBuilder, updateCommandBuilder, simpleDeleteCommandBuilder);
+            var testService = new NpgsqlCommandsBulkService(
+                bulkServiceOptions, 
+                NullLoggerFactory.Instance, 
+                insertCommandBuilder, 
+                updateCommandBuilder, 
+                deleteCommandBuilder, 
+                upsertCommandBuilder);
 
             var elements = new List<TestEntity>
             {

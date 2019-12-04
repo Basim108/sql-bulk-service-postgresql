@@ -20,18 +20,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         private readonly IInsertSqlCommandBuilder _insertCommandBuilder;
         private readonly IUpdateSqlCommandBuilder _updateCommandBuilder;
         private readonly IDeleteSqlCommandBuilder _deleteCommandBuilder;
+        private readonly IUpsertSqlCommandBuilder _upsertCommandBuilder;
 
         public NpgsqlCommandsBulkService(
             BulkServiceOptions options,
             ILoggerFactory loggerFactory,
             IInsertSqlCommandBuilder insertCommandBuilder,
             IUpdateSqlCommandBuilder updateCommandBuilder,
-            IDeleteSqlCommandBuilder deleteCommandBuilder)
+            IDeleteSqlCommandBuilder deleteCommandBuilder,
+            IUpsertSqlCommandBuilder upsertCommandBuilder)
         {
             _options = options;
             _insertCommandBuilder = insertCommandBuilder;
             _updateCommandBuilder = updateCommandBuilder;
             _deleteCommandBuilder = deleteCommandBuilder;
+            _upsertCommandBuilder = upsertCommandBuilder;
             _logger = loggerFactory.CreateLogger<NpgsqlCommandsBulkService>();
         }
         
@@ -49,6 +52,23 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             where TEntity : class
         {
             await ExecuteOperationAsync(_deleteCommandBuilder, connection, elements, cancellationToken);
+        }
+
+        /// <summary>
+        /// Insert new elements and update those already existed ones 
+        /// </summary>
+        /// <param name="connection">Connection to a database</param>
+        /// <param name="elements">Elements that have to be inserted or updated</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TEntity">Type of instances that have to be inserted or updated</typeparam>
+        /// <returns>The same collection of items with updated from the storage properties that marked as mast update after insert or must update after update (see PropertyProfile.MustBeUpdatedAfterUpdate, PropertyProfile.MustBeUpdatedAfterInsert)</returns>
+        public Task<ICollection<TEntity>> UpsertAsync<TEntity>(
+            [NotNull] NpgsqlConnection connection,
+            [NotNull] ICollection<TEntity> elements,
+            CancellationToken cancellationToken)
+            where TEntity : class
+        {
+            return ExecuteOperationAsync(_upsertCommandBuilder, connection, elements, cancellationToken);
         }
         
         /// <summary>
