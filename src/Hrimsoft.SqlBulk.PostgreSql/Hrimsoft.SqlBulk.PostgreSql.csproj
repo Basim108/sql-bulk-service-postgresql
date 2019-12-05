@@ -12,6 +12,7 @@
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
         <Company>Himsoft</Company>
+        <PackageVersion>1.0.0-rc1</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
