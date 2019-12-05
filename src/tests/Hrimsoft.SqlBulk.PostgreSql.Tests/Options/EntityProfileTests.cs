@@ -38,7 +38,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
             var i = Math.Round((decimal)5 / 2, MidpointRounding.ToPositiveInfinity);
             var entityProfile = new EntityProfile(typeof(TestEntity));
             Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
-            Assert.Throws<SqlBulkServiceException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+            Assert.Throws<SqlGenerationException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
         }
 
         

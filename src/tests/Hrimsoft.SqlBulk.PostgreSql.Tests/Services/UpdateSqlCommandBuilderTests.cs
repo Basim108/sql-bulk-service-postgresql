@@ -75,7 +75,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             {
                 new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
             };
-            Assert.Throws<SqlBulkServiceException>(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
+            Assert.Throws<SqlGenerationException>(() => _testService.Generate(elements, entityProfile, CancellationToken.None));
         }
         
         [Test]

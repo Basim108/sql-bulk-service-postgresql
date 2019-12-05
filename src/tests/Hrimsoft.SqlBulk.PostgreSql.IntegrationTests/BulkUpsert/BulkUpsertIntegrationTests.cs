@@ -59,14 +59,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
-            }
-
-            elements.First().Value = 128; // this item should be updated
-            // This item should be inserted
-            elements.Add(new TestEntity {RecordId = "rec-02", SensorId = "sens-01", Value = 1});
-
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+                elements.First().Value = 128; // this item should be updated
+                // This item should be inserted
+                elements.Add(new TestEntity {RecordId = "rec-02", SensorId = "sens-01", Value = 1});
                 await testService.UpsertAsync(connection, elements, CancellationToken.None);
             }
 

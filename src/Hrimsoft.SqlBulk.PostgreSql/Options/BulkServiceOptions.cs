@@ -16,6 +16,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public BulkServiceOptions(int maximumSentElements)
         {
             this.MaximumSentElements = maximumSentElements;
+            this.FailureStrategy = FailureStrategies.StopEverything;
         }
         
         private readonly Dictionary<Type, EntityProfile> _supportedEntityTypes = new Dictionary<Type, EntityProfile>();
@@ -28,10 +29,20 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// The maximum number of elements that have to be included into one command.
         /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.
-        ///
+        /// It could be overriden by the same property in the <see cref="EntityProfile"/>
+        /// 
         /// Default: 0 
         /// </summary>
         public int MaximumSentElements { get; set; }
+        
+        /// <summary>
+        /// Defines a strategy of how bulk service will process sql command failures.
+        /// This strategy is defined for all registered entity types.
+        /// It could be overriden by the same property in the <see cref="EntityProfile"/>
+        ///
+        /// Default: StopEverything 
+        /// </summary>
+        public FailureStrategies FailureStrategy { get; set; }
         
         /// <summary>
         /// If true then bulk operation will exclude those items that were not operated, for example, due to the constraint validation errors.

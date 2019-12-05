@@ -22,8 +22,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// The maximum number of elements that have to be included into one command.
         /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.  
         /// </summary>
-        public int MaximumSentElements { get; protected set; }
+        public int? MaximumSentElements { get; protected set; }
 
+        /// <summary>
+        /// Defines a strategy of how bulk service will process sql command failures.
+        /// This strategy is defined only for this particular entity type
+        /// 
+        /// It will override the strategy defined in the <see cref="BulkServiceOptions"/> 
+        /// </summary>
+        public FailureStrategies? FailureStrategy { get; set; }
+        
         /// <summary>
         /// Type of entity that owns all these mapped properties
         /// </summary>
@@ -149,7 +157,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentException("Cannot calculate column name, so the argument must be set manually", nameof(column));
 
             if (this.Properties.ContainsKey(columnName))
-                throw new SqlBulkServiceException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
+                throw new SqlGenerationException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression, isPartOfUniqueConstraint);
             propertyProfile.SetDbColumnType(typeof(TProperty));
