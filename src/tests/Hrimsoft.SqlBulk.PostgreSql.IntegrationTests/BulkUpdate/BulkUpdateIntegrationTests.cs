@@ -43,11 +43,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -58,25 +58,22 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
-            }
-            
-            var firstId = elements[0].Id;
-            elements[0].Value = 1;
-            var secondId = elements[1].Id;
-            elements[1].Value = 2;
 
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+                var firstId = elements[0].Id;
+                elements[0].Value = 1;
+                var secondId = elements[1].Id;
+                elements[1].Value = 2;
+
                 await testService.UpdateAsync(connection, elements, CancellationToken.None);
-            }
 
-            Assert.AreEqual(firstId, elements[0].Id);
-            Assert.AreEqual(1, elements[0].Value);
-            
-            Assert.AreEqual(secondId, elements[1].Id);
-            Assert.AreEqual(2, elements[1].Value);
+                Assert.AreEqual(firstId, elements[0].Id);
+                Assert.AreEqual(1, elements[0].Value);
+
+                Assert.AreEqual(secondId, elements[1].Id);
+                Assert.AreEqual(2, elements[1].Value);
+            }
         }
-        
+
         [Test]
         public async Task Update_should_split_correctly_even_number_of_elements()
         {
@@ -89,11 +86,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -106,35 +103,32 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
-            }
 
-            var firstId = elements[0].Id;
-            elements[0].Value = 1;
-            var secondId = elements[1].Id;
-            elements[1].Value = 2;
-            var thirdId = elements[2].Id;
-            elements[2].Value = 3;
-            var fourthId = elements[3].Id;
-            elements[3].Value = 4;
-            
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+                var firstId = elements[0].Id;
+                elements[0].Value = 1;
+                var secondId = elements[1].Id;
+                elements[1].Value = 2;
+                var thirdId = elements[2].Id;
+                elements[2].Value = 3;
+                var fourthId = elements[3].Id;
+                elements[3].Value = 4;
+
                 await testService.UpdateAsync(connection, elements, CancellationToken.None);
-            }
 
-            Assert.AreEqual(firstId, elements[0].Id);
-            Assert.AreEqual(1, elements[0].Value);
-            
-            Assert.AreEqual(secondId, elements[1].Id);
-            Assert.AreEqual(2, elements[1].Value);
-            
-            Assert.AreEqual(thirdId, elements[2].Id);
-            Assert.AreEqual(3, elements[2].Value);
-            
-            Assert.AreEqual(fourthId, elements[3].Id);
-            Assert.AreEqual(4, elements[3].Value);        
+                Assert.AreEqual(firstId, elements[0].Id);
+                Assert.AreEqual(1, elements[0].Value);
+
+                Assert.AreEqual(secondId, elements[1].Id);
+                Assert.AreEqual(2, elements[1].Value);
+
+                Assert.AreEqual(thirdId, elements[2].Id);
+                Assert.AreEqual(3, elements[2].Value);
+
+                Assert.AreEqual(fourthId, elements[3].Id);
+                Assert.AreEqual(4, elements[3].Value);
+            }
         }
-        
+
         [Test]
         public async Task Update_should_split_correctly_odd_number_of_elements()
         {
@@ -147,11 +141,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -163,29 +157,25 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
-            }
 
+                var firstId = elements[0].Id;
+                elements[0].Value = 1;
+                var secondId = elements[1].Id;
+                elements[1].Value = 2;
+                var thirdId = elements[2].Id;
+                elements[2].Value = 3;
 
-            var firstId = elements[0].Id;
-            elements[0].Value = 1;
-            var secondId = elements[1].Id;
-            elements[1].Value = 2;
-            var thirdId = elements[2].Id;
-            elements[2].Value = 3;
-            
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
                 await testService.UpdateAsync(connection, elements, CancellationToken.None);
-            }
 
-            Assert.AreEqual(firstId, elements[0].Id);
-            Assert.AreEqual(1, elements[0].Value);
-            
-            Assert.AreEqual(secondId, elements[1].Id);
-            Assert.AreEqual(2, elements[1].Value);
-            
-            Assert.AreEqual(thirdId, elements[2].Id);
-            Assert.AreEqual(3, elements[2].Value);
+                Assert.AreEqual(firstId, elements[0].Id);
+                Assert.AreEqual(1, elements[0].Value);
+
+                Assert.AreEqual(secondId, elements[1].Id);
+                Assert.AreEqual(2, elements[1].Value);
+
+                Assert.AreEqual(thirdId, elements[2].Id);
+                Assert.AreEqual(3, elements[2].Value);
+            }
         }
     }
 }
