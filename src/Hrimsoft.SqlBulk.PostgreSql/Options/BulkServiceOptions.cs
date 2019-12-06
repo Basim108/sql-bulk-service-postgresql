@@ -19,22 +19,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             this.FailureStrategy = FailureStrategies.StopEverything;
         }
         
-        private readonly Dictionary<Type, EntityProfile> _supportedEntityTypes = new Dictionary<Type, EntityProfile>();
-
-        /// <summary>
-        /// Information about mapping business entities to the postgres entities
-        /// </summary>
-        public IReadOnlyDictionary<Type, EntityProfile> SupportedEntityTypes => _supportedEntityTypes;
-
-        /// <summary>
-        /// The maximum number of elements that have to be included into one command.
-        /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.
-        /// It could be overriden by the same property in the <see cref="EntityProfile"/>
-        /// 
-        /// Default: 0 
-        /// </summary>
-        public int MaximumSentElements { get; set; }
-        
+        #region Error management options
         /// <summary>
         /// Defines a strategy of how bulk service will process sql command failures.
         /// This strategy is defined for all registered entity types.
@@ -45,28 +30,46 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public FailureStrategies FailureStrategy { get; set; }
         
         /// <summary>
-        /// If true then bulk operation will exclude those items that were not operated, for example, due to the constraint validation errors.
-        /// Use of this option makes sense when MaximumSentElements is greater than 0.
-        /// In this case the set of operating elements will be split on subsets of the MaximumSentElements size;
-        /// And if operating (insert or update) of one of these subset fails then elements from this subset will be excluded from result set.
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// not operated elements will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.NotOperatedElements"/> 
+        /// Default: false
+        /// </summary>
+        public bool IsNotOperatedElementsEnabled { get; set; }
+        
+        /// <summary>
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// those elements that were successfully operated will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.OperatedElements"/>
         ///
-        /// If false then in the first failed subset the corresponding exception will be thrown
-        /// 
         /// Default: false 
         /// </summary>
-        public bool IgnoreWrongItems { get; set; }
+        public bool IsOperatedElementsEnabled { get; set; }
+        
+        /// <summary>
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// those portion of elements that caused an exception will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.ProblemElements"/> 
+        /// Default: false
+        /// </summary>
+        public bool IsProblemElementsEnabled { get; set; }
+        #endregion
+
+        #region command execution options
+        /// <summary>
+        /// The maximum number of elements that have to be included into one command.
+        /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.
+        /// It could be overriden by the same property in the <see cref="EntityProfile"/>
+        /// 
+        /// Default: 0 
+        /// </summary>
+        public int MaximumSentElements { get; set; }        
+        #endregion
+        
+        #region mapping options
+        private readonly Dictionary<Type, EntityProfile> _supportedEntityTypes = new Dictionary<Type, EntityProfile>();
 
         /// <summary>
-        /// 
+        /// Information about mapping business entities to the postgres entities
         /// </summary>
-        /// <param name="entityProfile"></param>
-        /// <typeparam name="TEntity"></typeparam>
-        public BulkServiceOptions RegisterEntityProfile<TEntity>([NotNull] EntityProfile entityProfile)
-        {
-            _supportedEntityTypes[entityProfile.EntityType] = entityProfile;
-            
-            return this;
-        }
+        public IReadOnlyDictionary<Type, EntityProfile> SupportedEntityTypes => _supportedEntityTypes;
 
         /// <summary>
         /// Register an entity profile that describes entity mapping and other options
@@ -75,5 +78,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             _supportedEntityTypes.Add(typeof(TEntity), profile);
         }
+        #endregion
     }
 }
