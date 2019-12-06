@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels;
@@ -78,11 +79,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
                 // Then it processes the second element and again calls sequence so gets 3;
                 Assert.AreEqual(3, secondItem.Id);
                 Assert.IsNotEmpty(notOperatedElements);
-                Assert.AreEqual("for conflict purpose", firstItem.RecordId);
+                Assert.AreEqual(1, notOperatedElements.Count);
+                Assert.AreEqual("for conflict purpose", notOperatedElements.First().RecordId);
             }
         }
 
-        [Test]
+        /// <summary>
+        /// When in one portion which is contains two elements, the first element was successfully inserted
+        /// and insertion of the second element violates a constraint, so the first element of that portion should be rollbacked!
+        /// </summary>
+        [Test(Description = "When in one portion which is contains two elements, the first element was successfully inserted and insertion of the second element violates a constraint, so the first element of that portion should be rollbacked!")]
         public async Task Insert_should_rollback_items_that_were_successfully_operated_in_one_portion()
         {
             var bulkServiceOptions = new BulkServiceOptions

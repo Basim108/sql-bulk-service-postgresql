@@ -124,6 +124,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var result = new List<TEntity>(elements.Count);
 
             var currentFailureStrategy = GetCurrentFailureStrategy(entityProfile);
+            var (needOperatedElements, needNotOperatedElements, needProblemElements)  = GetExtendedFailureInformation(entityProfile);
             NpgsqlTransaction transaction = null;
             if (currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
             {
@@ -143,12 +144,20 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
                 catch (Exception ex)
                 {
-                    await ProcessFailureAsync(currentFailureStrategy, ex, transaction, elements, cancellationToken);
+                    var notOperatedElements = needNotOperatedElements ? elements : null;
+                    var operatedElements = needOperatedElements ? new List<TEntity>() : null;
+                    var problemElements = needProblemElements ? elements : null;
+                    
+                    await ProcessFailureAsync(currentFailureStrategy, ex, transaction, operatedElements, notOperatedElements, problemElements, cancellationToken);
                     result.AddRange(elements);
                 }
             }
             else
             {
+                var operated = needOperatedElements ? new List<TEntity>(elements.Count) : null;
+                var notOperated = needNotOperatedElements ? new List<TEntity>(elements.Count) : null;
+                var problem = needProblemElements ? new List<TEntity>(maximumEntitiesPerSent) : null;
+                
                 var iterations = Math.Round((decimal) elements.Count / maximumEntitiesPerSent, MidpointRounding.AwayFromZero);
                 for (var i = 0; i < iterations; i++)
                 {
@@ -156,10 +165,31 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     try
                     {
                         await ExecutePortionAsync(commandBuilder, connection, portion, entityProfile, cancellationToken);
+                        operated?.AddRange(portion);
                     }
                     catch (Exception ex)
                     {
-                        await ProcessFailureAsync(currentFailureStrategy, ex, transaction, portion, cancellationToken);
+                        problem?.AddRange(portion);
+                        
+                        switch (currentFailureStrategy)
+                        {
+                            // Ignore strategy is ignored here because it does not throw an SqlBulkExecutionException
+                            
+                            case FailureStrategies.StopEverything:
+                            {
+                                //Since i is not incremented yet, this command will add current portion to notOperated as well as the rest of elements 
+                                notOperated?.AddRange(elements.Skip(i * maximumEntitiesPerSent).ToList());
+                                break;
+                            }
+                            case FailureStrategies.StopEverythingAndRollback:
+                            {
+                                operated?.Clear();
+                                notOperated?.AddRange(elements);
+                                break;
+                            }
+                        }
+
+                        await ProcessFailureAsync(currentFailureStrategy, ex, transaction, operated, notOperated, problem, cancellationToken);
                         result.AddRange(portion);
                     }
                 }
@@ -168,11 +198,22 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             return result;
         }
 
+        
+        private (bool NeedOperated, bool NeedNotOperated, bool NeedProblem) GetExtendedFailureInformation([NotNull] EntityProfile entityProfile)
+        {
+            var needOperated = entityProfile.IsOperatedElementsEnabled ?? _options.IsOperatedElementsEnabled;
+            var needNotOperated = entityProfile.IsNotOperatedElementsEnabled ?? _options.IsNotOperatedElementsEnabled;
+            var needProblem = entityProfile.IsProblemElementsEnabled ?? _options.IsProblemElementsEnabled;
+            return (needOperated, needNotOperated, needProblem);
+        }
+
         private async Task ProcessFailureAsync<TEntity>(
             FailureStrategies currentFailureStrategy, 
             [NotNull] Exception ex, 
             NpgsqlTransaction transaction, 
-            [NotNull] ICollection<TEntity> notOperatedElements, 
+            ICollection<TEntity> operatedElements, 
+            ICollection<TEntity> notOperatedElements, 
+            ICollection<TEntity> problemElements, 
             CancellationToken cancellationToken) where TEntity : class
         {
             _logger.LogError(ex, "Bulk command execution failed");
@@ -183,7 +224,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (currentFailureStrategy == FailureStrategies.StopEverything ||
                 currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
             {
-                throw new SqlBulkExecutionException<TEntity>(ex, currentFailureStrategy, notOperatedElements);
+                throw new SqlBulkExecutionException<TEntity>(ex, currentFailureStrategy,problemElements, notOperatedElements, operatedElements);
             }
         }
 

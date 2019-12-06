@@ -17,6 +17,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             this.EntityType = entityType;
             this.Properties = new Dictionary<string, PropertyProfile>();
         }
+        /// <summary>
+        /// Type of entity that owns all these mapped properties
+        /// </summary>
+        [NotNull]
+        public Type EntityType { get; }
+        
+        #region command execution options
 
         /// <summary>
         /// The maximum number of elements that have to be included into one command.
@@ -24,24 +31,54 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// </summary>
         public int? MaximumSentElements { get; protected set; }
 
+        #endregion
+
+        #region Error management options
+
         /// <summary>
         /// Defines a strategy of how bulk service will process sql command failures.
         /// This strategy is defined only for this particular entity type
         /// 
-        /// It will override the strategy defined in the <see cref="BulkServiceOptions"/> 
+        /// It will override the option defined in the <see cref="BulkServiceOptions"/> 
         /// </summary>
         public FailureStrategies? FailureStrategy { get; set; }
-        
-        /// <summary>
-        /// Type of entity that owns all these mapped properties
-        /// </summary>
-        [NotNull]
-        public Type EntityType { get; }
 
+        /// <summary>
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// not operated elements will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.NotOperatedElements"/> 
+        /// It will override the option defined in the <see cref="BulkServiceOptions"/>
+        /// Default: false
+        /// </summary>
+        public bool? IsNotOperatedElementsEnabled { get; set; }
+
+        /// <summary>
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// those elements that were successfully operated will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.OperatedElements"/>
+        /// It will override the option defined in the <see cref="BulkServiceOptions"/>
+        /// Default: false 
+        /// </summary>
+        public bool? IsOperatedElementsEnabled { get; set; }
+
+        /// <summary>
+        /// If true, when an <see cref="SqlBulkExecutionException{TEntity}"/> exception is thrown,
+        /// those portion of elements that caused an exception will be set in the exception property <see cref="SqlBulkExecutionException{TEntity}.ProblemElements"/> 
+        /// It will override the option defined in the <see cref="BulkServiceOptions"/>
+        /// Default: false
+        /// </summary>
+        public bool? IsProblemElementsEnabled { get; set; }
+
+        #endregion
+
+        #region mapping information
+        
         private string _tableName;
+        /// <summary>
+        /// A table name that represents this entity in the database
+        /// </summary>
         public string TableName
         {
-            get {
+            get
+            {
                 if (string.IsNullOrWhiteSpace(_tableName))
                     _tableName = $"\"{EntityType.Name.ToSnakeCase()}\"";
 
@@ -54,12 +91,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// Collection of properties 
         /// </summary>
         public IDictionary<string, PropertyProfile> Properties { get; }
-        
+
         /// <summary>
         /// Information about properties that all together make a unique value among all  the entity instances in the database
         /// </summary>
         public EntityUniqueConstraint UniqueConstraint { get; private set; }
+        
+        #endregion
 
+        #region methods to tune mapping
         /// <summary>
         /// Sets database table name that has to be mapped onto this entity
         /// </summary>
@@ -104,14 +144,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public PropertyProfile HasPropertyAsPartOfUniqueConstraint<TEntity, TProperty>(string column, [NotNull] Expression<Func<TEntity, TProperty>> propertyExpression)
         {
             var propertyProfile = HasProperty(column, propertyExpression, true);
-            if(UniqueConstraint == null)
+            if (UniqueConstraint == null)
                 UniqueConstraint = new EntityUniqueConstraint(propertyProfile);
-            
+
             UniqueConstraint.UniqueProperties.Add(propertyProfile);
-            
+
             return propertyProfile;
         }
-        
+
         /// <summary>
         /// Adds a mapping a property to its snake cased column equivalent 
         /// </summary>
@@ -120,7 +160,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             return HasProperty("", propertyExpression, false);
         }
-        
+
         /// <summary>
         /// Adds a specific mapping 
         /// </summary>
@@ -148,7 +188,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             if (string.IsNullOrWhiteSpace(propertyName))
                 propertyName = column;
-            
+
             var columnName = string.IsNullOrWhiteSpace(column)
                 ? propertyName.ToSnakeCase()
                 : column;
@@ -162,8 +202,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var propertyProfile = new PropertyProfile(columnName, propertyExpression, isPartOfUniqueConstraint);
             propertyProfile.SetDbColumnType(typeof(TProperty));
             this.Properties.Add(columnName, propertyProfile);
-            
+
             return propertyProfile;
         }
+        
+        #endregion
     }
 }
