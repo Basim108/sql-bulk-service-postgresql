@@ -12,6 +12,6 @@ PM> Install-Package Hrimsoft.PostgresSqlBulkService
 
 ## License ##
 
-PostgreSQLCopyHelper is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+PostgresSqlBulkService is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 Copyright (c) Basim Al-Jawahery
