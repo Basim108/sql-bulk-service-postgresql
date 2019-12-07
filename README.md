@@ -1,6 +1,7 @@
 # Postgresql Bulk Service #
 ![GitHub](https://img.shields.io/github/license/basim108/sql-bulk-service-postgresql)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/Hrimsoft.PostgresSqlBulkService)
+![Nuget](https://img.shields.io/nuget/dt/Hrimsoft.PostgresSqlBulkService)
 
 PostgresSqlBulkService is a library for efficient bulk operations (insert, update, upsert, and delete) to PostgreSQL databases.
 
