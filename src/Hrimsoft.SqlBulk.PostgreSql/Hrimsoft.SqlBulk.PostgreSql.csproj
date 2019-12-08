@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageId>Hrimsoft.PostgresSqlBulkService</PackageId>
+        <PackageId>Hrimsoft.PostgreSqlBulkService</PackageId>
         <Title>Hrimsoft.PostgreSqlBulkService</Title>
         <Authors>Basim Al-Jawahery</Authors>
         <Description>Provides bulk operations (upsert, insert, update, delete) on postgresql</Description>
