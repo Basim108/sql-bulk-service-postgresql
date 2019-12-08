@@ -12,6 +12,8 @@ To install [NuGet package PostgreSqlBulkService](https://www.nuget.org/packages/
 ```
 PM> Install-Package Hrimsoft.PostgreSqlBulkService
 ```
+## Documentation ##
+- [Basic Usage](docs/basic-usage.md)
 
 ## License ##
 
