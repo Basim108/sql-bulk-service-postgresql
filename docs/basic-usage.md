@@ -78,7 +78,8 @@ public class TestEntityController: ControllerBase {
     using(var connection = new NpgsqlConnection(_connectionString))
     {
       // Will automatically receive generated ids and map them on existed entities.
-      var result = await _bulkService.InsertAsync(entities, cancellationToken);
+      var result = await _bulkService.InsertAsync(connection, entities, cancellationToken);
+      
       // here each entity in the collection "entities" will have an Id property already set.
       return result;
     }
@@ -89,7 +90,7 @@ public class TestEntityController: ControllerBase {
   {
     using(var connection = new NpgsqlConnection(_connectionString))
     {
-      var result = await _bulkService.UpdateAsync(entities, cancellationToken);
+      var result = await _bulkService.UpdateAsync(connection, entities, cancellationToken);
       return result;
     }
   }
@@ -99,7 +100,7 @@ public class TestEntityController: ControllerBase {
   {
     using(var connection = new NpgsqlConnection(_connectionString))
     {
-      var result = await _bulkService.DeleteAsync(entities, cancellationToken);
+      var result = await _bulkService.DeleteAsync(connection, entities, cancellationToken);
       return result;
     }
   }
