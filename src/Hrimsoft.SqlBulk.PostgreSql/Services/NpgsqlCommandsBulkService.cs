@@ -53,7 +53,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            return await ExecuteOperationAsync(_deleteCommandBuilder, connection, elements, cancellationToken);
+            return await ExecuteOperationAsync(SqlOperation.Delete, connection, elements, cancellationToken);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            return ExecuteOperationAsync(_upsertCommandBuilder, connection, elements, cancellationToken);
+            return ExecuteOperationAsync(SqlOperation.Upsert, connection, elements, cancellationToken);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            return ExecuteOperationAsync(_updateCommandBuilder, connection, elements, cancellationToken);
+            return ExecuteOperationAsync(SqlOperation.Update, connection, elements, cancellationToken);
         }
 
         /// <summary>
@@ -104,11 +104,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            return ExecuteOperationAsync(_insertCommandBuilder, connection, elements, cancellationToken);
+            return ExecuteOperationAsync(SqlOperation.Insert, connection, elements, cancellationToken);
         }
 
         public async Task<ICollection<TEntity>> ExecuteOperationAsync<TEntity>(
-            [NotNull] ISqlCommandBuilder commandBuilder,
+            SqlOperation operation,
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
             CancellationToken cancellationToken)
@@ -117,7 +117,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var entityType = typeof(TEntity);
             if (!_options.SupportedEntityTypes.ContainsKey(entityType))
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
-
+            
             var entityProfile = _options.SupportedEntityTypes[entityType];
             var maximumEntitiesPerSent = GetCurrentMaximumSentElements(entityProfile);
 
@@ -138,7 +138,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 try
                 {
-                    await ExecutePortionAsync(commandBuilder, connection, elements, entityProfile, cancellationToken);
+                    await ExecutePortionAsync(operation, connection, elements, entityProfile, cancellationToken);
                     if (transaction != null)
                         await transaction.CommitAsync(cancellationToken);
                 }
@@ -148,7 +148,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var operatedElements = needOperatedElements ? new List<TEntity>() : null;
                     var problemElements = needProblemElements ? elements : null;
                     
-                    await ProcessFailureAsync(currentFailureStrategy, ex, transaction, operatedElements, notOperatedElements, problemElements, cancellationToken);
+                    await ProcessFailureAsync(operation, currentFailureStrategy, ex, transaction, operatedElements, notOperatedElements, problemElements, cancellationToken);
                     result.AddRange(elements);
                 }
             }
@@ -164,7 +164,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var portion = elements.Skip(i * maximumEntitiesPerSent).Take(maximumEntitiesPerSent).ToList();
                     try
                     {
-                        await ExecutePortionAsync(commandBuilder, connection, portion, entityProfile, cancellationToken);
+                        await ExecutePortionAsync(operation, connection, portion, entityProfile, cancellationToken);
                         operated?.AddRange(portion);
                     }
                     catch (Exception ex)
@@ -189,7 +189,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                             }
                         }
 
-                        await ProcessFailureAsync(currentFailureStrategy, ex, transaction, operated, notOperated, problem, cancellationToken);
+                        await ProcessFailureAsync(operation, currentFailureStrategy, ex, transaction, operated, notOperated, problem, cancellationToken);
                         result.AddRange(portion);
                     }
                 }
@@ -198,7 +198,23 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             return result;
         }
 
-        
+        private ISqlCommandBuilder GetCommandBuilder(SqlOperation operation)
+        {
+            ISqlCommandBuilder result = null;
+            switch (operation)
+            {
+                case SqlOperation.Insert: result = _insertCommandBuilder; break;
+                case SqlOperation.Update: result = _updateCommandBuilder; break;
+                case SqlOperation.Delete: result = _deleteCommandBuilder; break;
+                case SqlOperation.Upsert: result = _upsertCommandBuilder; break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(operation), operation, $"Sql operation {operation} is not supported");
+            }
+
+            return result;
+        }
+
+
         private (bool NeedOperated, bool NeedNotOperated, bool NeedProblem) GetExtendedFailureInformation([NotNull] EntityProfile entityProfile)
         {
             var needOperated = entityProfile.IsOperatedElementsEnabled ?? _options.IsOperatedElementsEnabled;
@@ -208,6 +224,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         }
 
         private async Task ProcessFailureAsync<TEntity>(
+            SqlOperation operation, 
             FailureStrategies currentFailureStrategy, 
             [NotNull] Exception ex, 
             NpgsqlTransaction transaction, 
@@ -224,21 +241,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (currentFailureStrategy == FailureStrategies.StopEverything ||
                 currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
             {
-                throw new SqlBulkExecutionException<TEntity>(ex, currentFailureStrategy,problemElements, notOperatedElements, operatedElements);
+                throw new SqlBulkExecutionException<TEntity>(ex, operation, currentFailureStrategy,problemElements, notOperatedElements, operatedElements);
             }
         }
 
         /// <summary>
         /// Makes a real command exec
         /// </summary>
-        /// <param name="commandBuilder"></param>
+        /// <param name="operation"></param>
         /// <param name="connection"></param>
         /// <param name="elements"></param>
         /// <param name="entityProfile"></param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity"></typeparam>
         public async Task ExecutePortionAsync<TEntity>(
-            [NotNull] ISqlCommandBuilder commandBuilder,
+            SqlOperation operation,
             [NotNull] NpgsqlConnection connection,
             [NotNull] ICollection<TEntity> elements,
             [NotNull] EntityProfile entityProfile,
@@ -250,6 +267,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            var commandBuilder = GetCommandBuilder(operation);
+            
             var commandResult = commandBuilder.Generate(elements, entityProfile, cancellationToken);
             using (var command = new NpgsqlCommand(commandResult.Command, connection))
             {
@@ -272,7 +291,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         }
 
                         if (commandResult.IsThereReturningClause)
-                            UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, cancellationToken);
+                            UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, operation, cancellationToken);
                     }
 
                     await reader.CloseAsync();
@@ -296,6 +315,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="reader"></param>
         /// <param name="item"></param>
         /// <param name="propertyProfiles"></param>
+        /// <param name="operation"></param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
@@ -303,6 +323,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             NpgsqlDataReader reader,
             TEntity item,
             IDictionary<string, PropertyProfile> propertyProfiles,
+            SqlOperation operation,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -310,10 +331,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!propInfoPair.Value.IsUpdatedAfterInsert)
-                    continue;
-                var value = reader[propInfoPair.Key];
-                propInfoPair.Value.SetPropertyValue(item, value);
+                if (operation == SqlOperation.Insert && propInfoPair.Value.IsUpdatedAfterInsert ||
+                    operation == SqlOperation.Update && propInfoPair.Value.IsUpdatedAfterUpdate ||
+                    operation == SqlOperation.Upsert && (propInfoPair.Value.IsUpdatedAfterInsert || propInfoPair.Value.IsUpdatedAfterUpdate))
+                {
+                    var value = reader[propInfoPair.Key];
+                    propInfoPair.Value.SetPropertyValue(item, value);
+                }
             }
         }
     }
