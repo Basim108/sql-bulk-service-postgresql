@@ -14,6 +14,7 @@ PM> Install-Package Hrimsoft.PostgreSqlBulkService
 ```
 ## Documentation ##
 - [Basic Usage](docs/basic-usage.md)
+- [Update entity properties after executing bulk operations](docs/returning-clause.md)
 
 ## License ##
 
