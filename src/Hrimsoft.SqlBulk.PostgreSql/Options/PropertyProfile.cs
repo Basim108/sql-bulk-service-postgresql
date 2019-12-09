@@ -79,7 +79,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// </summary>
         public PropertyProfile MustBeUpdatedAfterUpdate()
         {
-            this.IsUpdatedAfterInsert = true;
+            this.IsUpdatedAfterUpdate = true;
             return this;
         }
         

@@ -9,11 +9,11 @@ using NUnit.Framework;
 
 namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
 {
-    public class BulkUpdateIntegrationTests
+    public class BulkUpdateTests
     {
         private readonly TestConfiguration _configuration;
 
-        public BulkUpdateIntegrationTests()
+        public BulkUpdateTests()
         {
             _configuration = new TestConfiguration();
         }
