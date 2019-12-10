@@ -45,59 +45,5 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             else
                 throw new ArgumentException($"{nameof(profile.PropertyExpression)} must be an instance of {nameof(MemberExpression)} type, but it is {profile.PropertyExpression.GetType().FullName}");
         }
-
-        /// <summary>
-        /// Map CLR types on DbType.
-        /// If you don't like this mapping then you can set your type by calling HasColumnType on a PropertyProfile instance.
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <param name="propertyType"></param>
-        public static void SetDbColumnType([NotNull] this PropertyProfile profile, [NotNull] Type propertyType)
-        {
-            if(propertyType == typeof(byte))
-            {
-                profile.HasColumnType(NpgsqlDbType.Smallint);
-            }
-            else if(propertyType == typeof(int))
-            {
-                profile.HasColumnType(NpgsqlDbType.Integer);
-            }
-            else if (propertyType == typeof(long))
-            {
-                profile.HasColumnType(NpgsqlDbType.Bigint);
-            }
-            else if (propertyType == typeof(bool))
-            {
-                profile.HasColumnType(NpgsqlDbType.Boolean);
-            }
-            else if (propertyType == typeof(string))
-            {
-                profile.HasColumnType(NpgsqlDbType.Text);
-            }
-            else if (propertyType == typeof(Decimal))
-            {
-                profile.HasColumnType(NpgsqlDbType.Double);
-            }
-            else if (propertyType == typeof(double))
-            {
-                profile.HasColumnType(NpgsqlDbType.Double);
-            }
-            else if (propertyType == typeof(float))
-            {
-                profile.HasColumnType(NpgsqlDbType.Real);
-            }
-            else if (propertyType == typeof(DateTime))
-            {
-                profile.HasColumnType(NpgsqlDbType.Timestamp);
-            }
-            else if (propertyType == typeof(DateTimeOffset))
-            {
-                profile.HasColumnType(NpgsqlDbType.TimestampTz);
-            }
-            else if (propertyType == typeof(TimeSpan))
-            {
-                profile.HasColumnType(NpgsqlDbType.Integer);
-            }
-        }
     }
 }
