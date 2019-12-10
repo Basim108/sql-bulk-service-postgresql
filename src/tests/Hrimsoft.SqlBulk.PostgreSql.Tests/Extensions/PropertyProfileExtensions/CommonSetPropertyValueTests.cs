@@ -1,9 +1,9 @@
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions.PropertyProfileExtensions
 {
-    public class PropertyProfileExtensionsSetPropertyValueTests
+    public class CommonSetPropertyValueTests
     {
         [Test]
         public void Should_set_int_value_to_int_property()

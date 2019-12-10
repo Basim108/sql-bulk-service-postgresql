@@ -196,12 +196,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (string.IsNullOrWhiteSpace(columnName))
                 throw new ArgumentException("Cannot calculate column name, so the argument must be set manually", nameof(column));
 
-            if (this.Properties.ContainsKey(columnName))
+            if (this.Properties.ContainsKey(propertyName))
                 throw new SqlGenerationException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression, isPartOfUniqueConstraint);
-            propertyProfile.SetDbColumnType(typeof(TProperty));
-            this.Properties.Add(columnName, propertyProfile);
+            propertyProfile.HasColumnType(typeof(TProperty).ToNpgsql());
+            this.Properties.Add(propertyName, propertyProfile);
 
             return propertyProfile;
         }

@@ -1,15 +1,15 @@
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions.PropertyProfileExtensions
 {
-    public class PropertyProfileExtensionsTests
+    public class CommonGetPropertyValueTests
     {
         [Test]
         public void Should_calculate_value_of_an_int_property()
         {
             var entityProfile = new SimpleEntityProfile();
-            var propInfo = entityProfile.Properties["id"];
+            var propInfo = entityProfile.Properties[nameof(TestEntity.Id)];
             Assert.NotNull(propInfo);
             
             var item = new TestEntity {Id = 13 };
@@ -22,7 +22,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions
         public void Should_calculate_value_of_a_string_property()
         {
             var entityProfile = new SimpleEntityProfile();
-            var propInfo = entityProfile.Properties["record_id"];
+            var propInfo = entityProfile.Properties[nameof(TestEntity.RecordId)];
             Assert.NotNull(propInfo);
             
             var item = new TestEntity {RecordId = "rec-01"};
@@ -35,8 +35,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions
         public void Should_calculate_value_of_a_constant_int_property()
         {
             var entityProfile = new EntityProfile(typeof(TestEntity));
-            var propInfo = entityProfile.HasProperty<TestEntity, int>
-                ("value", x => 10);
+            var propInfo = entityProfile.HasProperty<TestEntity, int>("value", x => 10);
             Assert.NotNull(propInfo);
             
             var result = propInfo.GetPropertyValue<TestEntity>(null);
