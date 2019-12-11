@@ -89,11 +89,11 @@ For this entity a profile could look like
     {
     }
 ```
-This would be anough all the mapping happens in the constructor of DataAnnotationEntityProfile<Book>.
+This would be enough all the mapping happens in the constructor of DataAnnotationEntityProfile<Book>.
 
 ## Mapping with both attributes and fluent api
 
-It is possible to customise mapping in the BookEntityProfile constructor and overide or add some mapping actions.
+It is possible to customize mapping in the BookEntityProfile constructor and overide or add some mapping actions.
 
 For example, 
 ```c#
