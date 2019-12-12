@@ -67,8 +67,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -113,8 +113,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -159,8 +159,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -210,8 +210,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -267,8 +267,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -321,8 +321,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
@@ -375,8 +375,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.Null(result);
 
                 var secondItem = new TestEntity
                 {
