@@ -15,11 +15,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public SqlBulkExecutionException(string message) :base(message) { }
 
         /// <inheritdoc />
-        public SqlBulkExecutionException(string message, [NotNull] Exception innerException)
+        public SqlBulkExecutionException(string message,Exception innerException)
         :base(message, innerException) { }
 
         /// <inheritdoc />
-        public SqlBulkExecutionException([NotNull] Exception innerException)
+        public SqlBulkExecutionException(Exception innerException)
             :base(innerException.Message, innerException) { }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <see cref="EntityProfile.IsOperatedElementsEnabled"/>
         /// </param>
         public SqlBulkExecutionException(
-            [NotNull] Exception innerException,
+            Exception innerException,
             SqlOperation operation,
             FailureStrategies usedStrategy,
             ICollection<TEntity> problemElements,

@@ -16,7 +16,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be inserted</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
-        Task<ICollection<TEntity>> InsertAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+        Task<ICollection<TEntity>> InsertAsync<TEntity>(NpgsqlConnection connection, ICollection<TEntity> elements, CancellationToken cancellationToken)
             where TEntity : class;
         
         /// <summary>
@@ -27,7 +27,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be updated</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
-        Task<ICollection<TEntity>> UpdateAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+        Task<ICollection<TEntity>> UpdateAsync<TEntity>( NpgsqlConnection connection, ICollection<TEntity> elements, CancellationToken cancellationToken)
             where TEntity : class;
         
         /// <summary>
@@ -38,7 +38,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
-        Task<ICollection<TEntity>> DeleteAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+        Task<ICollection<TEntity>> DeleteAsync<TEntity>( NpgsqlConnection connection, ICollection<TEntity> elements, CancellationToken cancellationToken)
             where TEntity : class;
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be inserted or updated</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
-        Task<ICollection<TEntity>> UpsertAsync<TEntity>([NotNull] NpgsqlConnection connection, [NotNull] ICollection<TEntity> elements, CancellationToken cancellationToken)
+        Task<ICollection<TEntity>> UpsertAsync<TEntity>( NpgsqlConnection connection, ICollection<TEntity> elements, CancellationToken cancellationToken)
             where TEntity : class;
     }
 }

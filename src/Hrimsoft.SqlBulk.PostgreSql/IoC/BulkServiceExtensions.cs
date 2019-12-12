@@ -16,8 +16,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="services"></param>
         /// <param name="setupAction">Bulk Service configuration such as mapping</param>
         /// <returns></returns>
-        public static IServiceCollection AddPostgreSqlBulkService([NotNull] this IServiceCollection services, Action<BulkServiceOptions> setupAction)
+        public static IServiceCollection AddPostgreSqlBulkService(this IServiceCollection services, Action<BulkServiceOptions> setupAction)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            
             var options = new BulkServiceOptions();
             setupAction(options);
 

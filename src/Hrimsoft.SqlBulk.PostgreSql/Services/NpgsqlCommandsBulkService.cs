@@ -48,8 +48,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns> 
         public async Task<ICollection<TEntity>> DeleteAsync<TEntity>(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -65,8 +65,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity">Type of instances that have to be inserted or updated</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> UpsertAsync<TEntity>(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -82,8 +82,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity">Type of instances that have to be updated</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> UpdateAsync<TEntity>(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -99,8 +99,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity">Type of instances that have to be inserted</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns>
         public Task<ICollection<TEntity>> InsertAsync<TEntity>(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
@@ -109,11 +109,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
         public async Task<ICollection<TEntity>> ExecuteOperationAsync<TEntity>(
             SqlOperation operation,
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+            
             var entityType = typeof(TEntity);
             if (!_options.SupportedEntityTypes.ContainsKey(entityType))
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
@@ -215,8 +218,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         }
 
 
-        private (bool NeedOperated, bool NeedNotOperated, bool NeedProblem) GetExtendedFailureInformation([NotNull] EntityProfile entityProfile)
+        private (bool NeedOperated, bool NeedNotOperated, bool NeedProblem) GetExtendedFailureInformation(EntityProfile entityProfile)
         {
+            if (entityProfile == null)
+                throw new ArgumentNullException(nameof(entityProfile));
+            
             var needOperated = entityProfile.IsOperatedElementsEnabled ?? _options.IsOperatedElementsEnabled;
             var needNotOperated = entityProfile.IsNotOperatedElementsEnabled ?? _options.IsNotOperatedElementsEnabled;
             var needProblem = entityProfile.IsProblemElementsEnabled ?? _options.IsProblemElementsEnabled;
@@ -226,13 +232,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         private async Task ProcessFailureAsync<TEntity>(
             SqlOperation operation, 
             FailureStrategies currentFailureStrategy, 
-            [NotNull] Exception ex, 
+            Exception ex, 
             NpgsqlTransaction transaction, 
             ICollection<TEntity> operatedElements, 
             ICollection<TEntity> notOperatedElements, 
             ICollection<TEntity> problemElements, 
             CancellationToken cancellationToken) where TEntity : class
         {
+            if (ex == null)
+                throw new ArgumentNullException(nameof(ex));
+            
             _logger.LogError(ex, "Bulk command execution failed");
 
             if (transaction != null)
@@ -256,12 +265,17 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <typeparam name="TEntity"></typeparam>
         public async Task ExecutePortionAsync<TEntity>(
             SqlOperation operation,
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] ICollection<TEntity> elements,
-            [NotNull] EntityProfile entityProfile,
+            NpgsqlConnection connection,
+            ICollection<TEntity> elements,
+            EntityProfile entityProfile,
             CancellationToken cancellationToken)
             where TEntity : class
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+            
             if (connection.State != ConnectionState.Open)
                 await connection.OpenAsync(cancellationToken);
 
@@ -299,14 +313,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             }
         }
 
-        public FailureStrategies GetCurrentFailureStrategy([NotNull] EntityProfile entityProfile)
+        public FailureStrategies GetCurrentFailureStrategy(EntityProfile entityProfile)
         {
-            return entityProfile.FailureStrategy ?? _options.FailureStrategy;
+            return entityProfile?.FailureStrategy ?? _options.FailureStrategy;
         }
 
-        public int GetCurrentMaximumSentElements([NotNull] EntityProfile entityProfile)
+        public int GetCurrentMaximumSentElements(EntityProfile entityProfile)
         {
-            return entityProfile.MaximumSentElements ?? _options.MaximumSentElements;
+            return entityProfile?.MaximumSentElements ?? _options.MaximumSentElements;
         }
 
         /// <summary>

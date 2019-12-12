@@ -19,9 +19,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="profile">information about which property it is needed to get value</param>
         /// <typeparam name="TEntity">Type of entity</typeparam>
         /// <returns>Returns</returns>
-        public static object GetPropertyValue<TEntity>([NotNull] this PropertyProfile profile, TEntity item)
+        public static object GetPropertyValue<TEntity>(this PropertyProfile profile, TEntity item)
             where TEntity : class
         {
+            if (profile == null)
+                throw new ArgumentNullException(nameof(profile));
+            
             var value = profile.PropertyExpression?.Compile().DynamicInvoke(item);
             return value;
         }
@@ -33,17 +36,22 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="profile">information about which property it is needed to set value</param>
         /// <param name="value"></param>
         /// <typeparam name="TEntity">Type of entity</typeparam>
-        public static void SetPropertyValue<TEntity>([NotNull] this PropertyProfile profile, [NotNull] TEntity item, object value)
+        public static void SetPropertyValue<TEntity>(this PropertyProfile profile, TEntity item, object value)
             where TEntity : class
         {
-            if (profile.PropertyExpression.Body is MemberExpression memberSelectorExpression)
+            if (item == null)
+                throw new ArgumentNullException(nameof(item));
+            if (profile == null)
+                throw new ArgumentNullException(nameof(profile));
+
+            if (profile?.PropertyExpression.Body is MemberExpression memberSelectorExpression)
             {
                 var property = memberSelectorExpression.Member as PropertyInfo;
-                if (property != null)
-                    property.SetValue(item, value, null);
+                property?.SetValue(item, value, null);
             }
             else
-                throw new ArgumentException($"{nameof(profile.PropertyExpression)} must be an instance of {nameof(MemberExpression)} type, but it is {profile.PropertyExpression.GetType().FullName}");
+                throw new ArgumentException(
+                    $"{nameof(profile.PropertyExpression)} must be an instance of {nameof(MemberExpression)} type, but it is {profile?.PropertyExpression.GetType().FullName}");
         }
     }
 }

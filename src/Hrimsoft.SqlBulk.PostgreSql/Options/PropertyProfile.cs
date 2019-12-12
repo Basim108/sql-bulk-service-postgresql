@@ -12,21 +12,20 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     public class PropertyProfile
     {
         /// <inheritdoc />
-        public PropertyProfile(string column, [NotNull] LambdaExpression propertyExpression, bool isPartOfUniqueConstraint = false)
+        public PropertyProfile(string column, LambdaExpression propertyExpression)
         {
             if (string.IsNullOrWhiteSpace(column))
                 throw new ArgumentNullException(nameof(column));
-            
+
             this.DbColumnName = column;
-            this.PropertyExpression = propertyExpression;
-            this.IsPartOfUniqueConstraint = isPartOfUniqueConstraint;
+            this.PropertyExpression = propertyExpression ?? throw new ArgumentNullException(nameof(propertyExpression));
         }
 
         /// <summary>
         /// This property is a part of unique constraint.
         /// Is used in upsert constructions
         /// </summary>
-        public bool IsPartOfUniqueConstraint { get; }
+        public bool IsPartOfUniqueConstraint { get; private set; }
         
         /// <summary>
         /// If true then the value of the property that represents this profile will be updated after insert operation.
@@ -106,10 +105,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Defines which database column type should be used for this property
         /// </summary>
-        public PropertyProfile HasColumnType([NotNull] NpgsqlDbType columnType)
+        public PropertyProfile HasColumnType(NpgsqlDbType columnType)
         {
             this.DbColumnType = columnType;
             return this;
         } 
+        
+        /// <summary>
+        /// Marks property as a part of unique constraint.
+        /// It is needed for upsert operation. <see cref="IPostgreSqlBulkService.UpsertAsync{TEntity}"/> 
+        /// </summary>
+        public PropertyProfile ThatIsPartOfUniqueConstraint()
+        {
+            this.IsPartOfUniqueConstraint = true;
+            
+            return this;
+        }
     }
 }

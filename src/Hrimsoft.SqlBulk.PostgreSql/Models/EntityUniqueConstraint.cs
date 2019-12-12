@@ -11,7 +11,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     public class EntityUniqueConstraint
     {
         /// <inheritdoc />
-        public EntityUniqueConstraint([NotNull] string name)
+        public EntityUniqueConstraint(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
@@ -20,8 +20,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             UniqueProperties = new List<PropertyProfile>();
         }
 
-        public EntityUniqueConstraint([NotNull] PropertyProfile uniqueProperty)
+        public EntityUniqueConstraint(PropertyProfile uniqueProperty)
         {
+            if (uniqueProperty == null)
+                throw new ArgumentNullException(nameof(uniqueProperty));
+            
             UniqueProperties = new List<PropertyProfile>(){ uniqueProperty };
         }
 

@@ -103,8 +103,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 var funcType = typeof(Func<,>).MakeGenericType(EntityType, propertyInfo.PropertyType);
                 var lambda = Expression.Lambda(funcType, property, parameter);
 
-                var propertyProfile = new PropertyProfile(columnName, lambda, isPartOfUniqueConstraint);
+                var propertyProfile = new PropertyProfile(columnName, lambda);
                 propertyProfile.HasColumnType(columnDbType.Value);
+                if (isPartOfUniqueConstraint)
+                    propertyProfile.ThatIsPartOfUniqueConstraint();
+
                 this.Properties.Add(propertyInfo.Name, propertyProfile);
 
                 if (isKey)

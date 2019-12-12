@@ -14,11 +14,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public SqlGenerationException(string message) :base(message) { }
 
         /// <inheritdoc />
-        public SqlGenerationException(string message, [NotNull] Exception innerException)
+        public SqlGenerationException(string message, Exception innerException)
         :base(message, innerException) { }
 
         /// <inheritdoc />
-        public SqlGenerationException([NotNull] Exception innerException)
+        public SqlGenerationException(Exception innerException)
             :base(innerException.Message, innerException) { }
     }
 }

@@ -28,10 +28,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql update command and collection of database parameters</returns>
-        public SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile,
+        public SqlCommandBuilderResult Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
             CancellationToken cancellationToken)
             where TEntity : class
         {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+            if (entityProfile == null)
+                throw new ArgumentNullException(nameof(entityProfile));
+
             if (elements.Count == 0)
                 throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
 
@@ -114,12 +119,17 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="lastUsedParamIndex">As this method is called for each item, this argument indecates the last used parameter index</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
         public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause) GenerateForItem<TEntity>(
-            [NotNull] EntityProfile entityProfile,
-            [NotNull] TEntity item,
+            EntityProfile entityProfile,
+            TEntity item,
             StringBuilder externalBuilder,
             int lastUsedParamIndex)
             where TEntity : class
         {
+            if (item == null)
+                throw new ArgumentNullException(nameof(item));
+            if (entityProfile == null)
+                throw new ArgumentNullException(nameof(entityProfile));
+
             var commandBuilder = externalBuilder ?? new StringBuilder(192);
             commandBuilder.Append($"update {entityProfile.TableName} set ");
 
@@ -165,7 +175,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     ? ""
                     : ",";
 
-                var setParamName = "@param" + (parameters.Count + lastUsedParamIndex);
+                var setParamName = $"@param{parameters.Count + lastUsedParamIndex}";
                 commandBuilder.Append($"{setExpressionDelimiter}\"{propInfo.DbColumnName}\"={setParamName}");
 
                 parameters.Add(new NpgsqlParameter(setParamName, propInfo.DbColumnType)

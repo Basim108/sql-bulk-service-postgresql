@@ -74,8 +74,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Register an entity profile that describes entity mapping and other options
         /// </summary>
-        public void AddEntityProfile<TEntity>([NotNull] EntityProfile profile)
+        public void AddEntityProfile<TEntity>(EntityProfile profile)
         {
+            if (profile == null)
+                throw new ArgumentNullException(nameof(profile));
+            
             _supportedEntityTypes.Add(typeof(TEntity), profile);
         }
         #endregion

@@ -28,9 +28,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql inset command and collection of database parameters</returns>
-        public SqlCommandBuilderResult Generate<TEntity>([NotNull] ICollection<TEntity> elements, [NotNull] EntityProfile entityProfile, CancellationToken cancellationToken)
+        public SqlCommandBuilderResult Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class
         {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+            if (entityProfile == null)
+                throw new ArgumentNullException(nameof(entityProfile));
+            
             if (elements.Count == 0)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
@@ -126,8 +131,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// If there is no properties that has to be included into returning clause then ReturningClause item in the result tuple will be an empty string.
         /// </returns>
         // ReSharper disable once MemberCanBePrivate.Global  Needed to be public for unit testing purpose
-        public (string Columns, string ReturningClause) GenerateColumnsAndReturningClauses([NotNull] ICollection<PropertyProfile> properties)
+        public (string Columns, string ReturningClause) GenerateColumnsAndReturningClauses(ICollection<PropertyProfile> properties)
         {
+            if (properties == null)
+                throw new ArgumentNullException(nameof(properties));
+            
             var returningClause = "";
             var firstReturningColumn = true;
 
