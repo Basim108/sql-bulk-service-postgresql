@@ -38,7 +38,18 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
             var i = Math.Round((decimal)5 / 2, MidpointRounding.ToPositiveInfinity);
             var entityProfile = new EntityProfile(typeof(TestEntity));
             Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
-            Assert.Throws<SqlGenerationException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+            Assert.Throws<TypeMappingException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+        }
+        
+        [Test]
+        public void HasProperty_should_set_type_mapping_exception_properties()
+        {
+            var i = Math.Round((decimal)5 / 2, MidpointRounding.ToPositiveInfinity);
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+            var ex = Assert.Throws<TypeMappingException>(() => entityProfile.HasProperty<TestEntity, int>(x => x.Id));
+            Assert.AreEqual(entityProfile.EntityType, ex.EntityType);
+            Assert.AreEqual(nameof(TestEntity.Id), ex.PropertyName);
         }
 
         

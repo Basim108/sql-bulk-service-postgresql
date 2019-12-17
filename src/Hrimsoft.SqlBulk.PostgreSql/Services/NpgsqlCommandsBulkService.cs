@@ -177,7 +177,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     }
                     catch (Exception ex)
                     {
-                        problem?.AddRange(portion);
+                        if(currentFailureStrategy != FailureStrategies.IgnoreFailure)
+                            problem?.AddRange(portion);
+                        
                         result?.NotOperated.AddRange(portion);
                         
                         switch (currentFailureStrategy)

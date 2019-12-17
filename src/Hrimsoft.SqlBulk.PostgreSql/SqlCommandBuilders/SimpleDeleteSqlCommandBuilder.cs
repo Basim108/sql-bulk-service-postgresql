@@ -154,7 +154,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             }
 
             if (firstWhereExpression)
-                throw new SqlGenerationException($"There is no private key defined for the entity type: '{typeof(TEntity).FullName}'");
+                throw new SqlGenerationException(SqlOperation.Delete, $"There is no private key defined for the entity type: '{typeof(TEntity).FullName}'");
             
             commandBuilder.Append(";");
 
