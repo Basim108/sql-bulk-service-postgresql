@@ -1,4 +1,4 @@
-# Errors Handling #
+# Error Handling #
 
 As the number of items that have to be operated in one sql command could be limited by MaximumSentElements option.
 ```c#
