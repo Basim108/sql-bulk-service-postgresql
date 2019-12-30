@@ -17,6 +17,7 @@ PM> Install-Package Hrimsoft.PostgreSqlBulkService
 - [Mapping entities to database tables](docs/mapping.md)
 - [Error Handling](docs/error-handling.md)
 - [Update entity properties after executing bulk operations](docs/returning-clause.md)
+- [Upsert: Insert and update in one request](docs/upsert-usage.md)
 
 ## License ##
 
