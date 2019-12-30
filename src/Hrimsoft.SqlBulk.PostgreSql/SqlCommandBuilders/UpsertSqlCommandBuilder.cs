@@ -213,7 +213,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 var firstProperty = uniqueConstraintInfo.UniqueProperties.FirstOrDefault(p => p != null);
                 if (firstProperty == null)
-                    throw new SqlGenerationException(
+                    throw new SqlGenerationException(SqlOperation.Upsert,
                         "It is impossible to generate a constraint name as neither it as set in constructor nor properties have been set as a part of unique constraint.");
                 result += $"(\"{firstProperty.DbColumnName}\")";
             }

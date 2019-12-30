@@ -9,10 +9,10 @@
         <Description>Provides bulk operations (upsert, insert, update, delete) on postgresql</Description>
         <PackageProjectUrl>https://github.com/Basim108/postgresql-bulk-service</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Basim108/postgresql-bulk-service</RepositoryUrl>
-        <AssemblyVersion>1.0.0.5</AssemblyVersion>
-        <FileVersion>1.0.0.5</FileVersion>
+        <AssemblyVersion>1.0.0.7</AssemblyVersion>
+        <FileVersion>1.0.0.7</FileVersion>
         <Company>Himsoft</Company>
-        <PackageVersion>1.0.0-rc5</PackageVersion>
+        <PackageVersion>1.0.0-rc7</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 

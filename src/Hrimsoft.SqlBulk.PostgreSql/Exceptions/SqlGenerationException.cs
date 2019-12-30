@@ -14,11 +14,23 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public SqlGenerationException(string message) :base(message) { }
 
         /// <inheritdoc />
+        public SqlGenerationException(SqlOperation operation, string message) 
+            :base(message)
+        {
+            Operation = operation;
+        }
+
+        /// <inheritdoc />
         public SqlGenerationException(string message, Exception innerException)
         :base(message, innerException) { }
 
         /// <inheritdoc />
         public SqlGenerationException(Exception innerException)
             :base(innerException.Message, innerException) { }
+
+        /// <summary>
+        /// What kind of sql operation builder tried to build and that threw the exception
+        /// </summary>
+        public SqlOperation Operation { get; }
     }
 }

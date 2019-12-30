@@ -205,7 +205,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentException("Cannot calculate column name, so the argument must be set manually", nameof(column));
 
             if (this.Properties.ContainsKey(propertyName))
-                throw new SqlGenerationException($"{nameof(EntityProfile)} already contains a property with name {propertyName}");
+                throw new TypeMappingException(EntityType, propertyName, $"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression);
             propertyProfile.HasColumnType(typeof(TProperty).ToNpgsql());

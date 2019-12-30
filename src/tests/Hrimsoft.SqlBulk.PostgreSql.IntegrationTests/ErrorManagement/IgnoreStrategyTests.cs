@@ -65,22 +65,25 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsEmpty(notOperatedElements);
+                
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.NotNull(result);
+                Assert.IsEmpty(result.NotOperated);
 
                 var secondItem = new TestEntity
                 {
                     RecordId = "rec-0", SensorId = "sens-01", Value = 100
                 };
                 elements.Add(secondItem);
-                notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.NotNull(result);
 
                 // id = 3 because insert firstly calls a sequence gets 2 and then has a constraint violation on columns RecordId and SensorId.
                 // Then it processes the second element and again calls sequence so gets 3;
                 Assert.AreEqual(3, secondItem.Id);
-                Assert.IsNotEmpty(notOperatedElements);
-                Assert.AreEqual(1, notOperatedElements.Count);
-                Assert.AreEqual("for conflict purpose", notOperatedElements.First().RecordId);
+                Assert.IsNotEmpty(result.NotOperated);
+                Assert.AreEqual(1, result.NotOperated.Count);
+                Assert.AreEqual("for conflict purpose", result.NotOperated.First().RecordId);
             }
         }
 
@@ -117,9 +120,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.ErrorManagement
 
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
-                var notOperatedElements = await _testService.InsertAsync(connection, elements, CancellationToken.None);
-                Assert.IsNotEmpty(notOperatedElements);
-                Assert.AreEqual(2, notOperatedElements.Count);
+                var result = await _testService.InsertAsync(connection, elements, CancellationToken.None);
+                Assert.NotNull(result);
+                Assert.IsNotEmpty(result.NotOperated);
+                Assert.AreEqual(2, result.NotOperated.Count);
             }
 
             var countOfRows = await _testUtils.HowManyRowsInTableAsync(entityProfile);

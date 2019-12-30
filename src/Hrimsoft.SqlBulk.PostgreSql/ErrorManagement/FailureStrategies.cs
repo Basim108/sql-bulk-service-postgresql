@@ -19,7 +19,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         StopEverythingAndRollback,
         /// <summary>
         /// Service will ignore any failure and will try to operate all the elements.
-        /// However, those not operated elements will be returned in the result in FailedToOperateElements collection
+        /// However, those not operated elements will be returned in the result in <see cref="SqlBulkExecutionException{TEntity}.ProblemElements"/> collection
         /// </summary>
         IgnoreFailure
     }
