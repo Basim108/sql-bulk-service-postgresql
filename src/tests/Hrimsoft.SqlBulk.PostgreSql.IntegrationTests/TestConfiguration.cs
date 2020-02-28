@@ -9,7 +9,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests
 
         // In secrets.json it is recommended to set environment fields first e.g.
         // { "Staging": { "DbHost": "...", ... }, "Postgres_9_5": { "DbHost": "...", ... }, "Postgres_9_4": {...} }
-        public TestConfiguration(string environment="Staging")
+        public TestConfiguration(string environment="Postgres_higher_than_9_4")
         {
             _environment = environment;
             Configuration = new ConfigurationBuilder()

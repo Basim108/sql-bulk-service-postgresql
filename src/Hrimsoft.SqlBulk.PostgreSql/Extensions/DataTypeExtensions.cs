@@ -81,6 +81,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 return NpgsqlDbType.Bigint;
             }
+            if (propertyType.IsEnum)
+            {
+                return NpgsqlDbType.Integer;
+            }
             throw new NotSupportedException($"Type mapping from type '{propertyType.FullName}' is not supported");
         }
         

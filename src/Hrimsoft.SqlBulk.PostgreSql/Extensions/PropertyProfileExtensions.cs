@@ -26,6 +26,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentNullException(nameof(profile));
             
             var value = profile.PropertyExpression?.Compile().DynamicInvoke(item);
+            if (value != null && value.GetType().IsEnum)
+            {
+                switch (profile.DbColumnType)
+                {
+                    case NpgsqlDbType.Bigint: value = (long) value; break;
+                    case NpgsqlDbType.Integer: value = (int) value; break;
+                    case NpgsqlDbType.Varchar: value = value.ToString(); break;
+                }
+                value = (int) value;
+            }
             return value;
         }
 
