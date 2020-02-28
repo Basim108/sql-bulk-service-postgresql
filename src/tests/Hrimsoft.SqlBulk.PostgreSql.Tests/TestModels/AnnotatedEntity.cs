@@ -28,5 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
         
         [NotMapped]
         public long AbstractValue { get; set; }
+        
+        public SomeEnum Some { get; set; }
     }
 }
