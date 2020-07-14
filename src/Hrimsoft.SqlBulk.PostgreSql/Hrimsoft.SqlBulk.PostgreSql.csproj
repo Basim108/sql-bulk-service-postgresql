@@ -8,16 +8,17 @@
         <Authors>Basim Al-Jawahery</Authors>
         <Description>
             Provides bulk operations (upsert, insert, update, delete) on postgresql.
-            + Added support for mapping Enum types
+            + Optimized async/await calls (removed asyn where just Tasks work well)
+            # Extracted String case extensions to separate nuget Hrimsoft.StringCases
         </Description>
         <PackageProjectUrl>https://github.com/Basim108/postgresql-bulk-service</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Basim108/postgresql-bulk-service</RepositoryUrl>
-        <AssemblyVersion>1.1.0.0</AssemblyVersion>
-        <FileVersion>1.1.0.0</FileVersion>
+        <AssemblyVersion>1.1.0.1</AssemblyVersion>
+        <FileVersion>1.1.0.1</FileVersion>
         <Company>Himsoft</Company>
-        <PackageVersion>1.1.0</PackageVersion>
+        <PackageVersion>1.1.1</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageReleaseNotes>Added support for mapping Enum types</PackageReleaseNotes>
+        <PackageReleaseNotes>Optimized async/await calls (removed asyn where just Tasks work well);Extracted String case extensions to separate nuget Hrimsoft.StringCases</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -26,6 +27,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Hrimsoft.StringCases" Version="1.0.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.1" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.0.1" />
         <PackageReference Include="Npgsql" Version="4.1.2" />

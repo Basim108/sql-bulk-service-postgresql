@@ -47,13 +47,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity">Type of instances that have to be deleted</typeparam>
         /// <returns>Returns a collection of not operated items. It won't be empty with set FailureStrategies.Ignore strategy <see cref="FailureStrategies"/></returns> 
-        public async Task<BulkOperationResult<TEntity>> DeleteAsync<TEntity>(
+        public Task<BulkOperationResult<TEntity>> DeleteAsync<TEntity>(
             NpgsqlConnection connection,
             ICollection<TEntity> elements,
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            return await ExecuteOperationAsync(SqlOperation.Delete, connection, elements, cancellationToken);
+            return ExecuteOperationAsync(SqlOperation.Delete, connection, elements, cancellationToken);
         }
 
         /// <summary>
@@ -199,12 +199,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                 break;
                             }
                         }
-
                         await ProcessFailureAsync(operation, currentFailureStrategy, ex, transaction, operated, notOperated, problem, cancellationToken);
                     }
                 }
             }
-
             return result;
         }
 
@@ -220,7 +218,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 default:
                     throw new ArgumentOutOfRangeException(nameof(operation), operation, $"Sql operation {operation} is not supported");
             }
-
             return result;
         }
 

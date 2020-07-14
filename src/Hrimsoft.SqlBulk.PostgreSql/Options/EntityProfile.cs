@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using Hrimsoft.StringCases;
 using JetBrains.Annotations;
 
 namespace Hrimsoft.SqlBulk.PostgreSql

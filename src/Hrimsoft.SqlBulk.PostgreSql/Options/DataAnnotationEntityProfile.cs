@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Linq.Expressions;
 using Hrimsoft.SqlBulk.PostgreSql.Attributes;
+using Hrimsoft.StringCases;
 using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
