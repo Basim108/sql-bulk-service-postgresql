@@ -56,7 +56,7 @@ for a spesific entity.
 
 ## Fault Strategies ##
 
-There three strategies that allows to affect error handling process.
+There are three strategies that allows to affect error handling process.
 ```c#
 /// <summary>
 /// Strategies of processing sql command failures
@@ -84,8 +84,8 @@ public enum FailureStrategies
 }
 ```
 
-If strategy will be set not to IgnoreFailure, then any bulk operation will return null. 
-This is because, BulkOperationResult makes sense only when error occurs, otherwise all elements will be operated. 
+If a strategy will be set not to IgnoreFailure, then any bulk operation will return null. 
+This is because BulkOperationResult makes sense only when error occurs, otherwise all elements will be operated. 
 If the error occurs all collections of operated, not operated, and problem elements will be set in 
 the SqlBulkExecutionException<TEntity> and BulkOperationResult becomes redundant.
 In IgnoreFailure all exceptions will be catched and collections will be filled with corresponding elements.
