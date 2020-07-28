@@ -114,6 +114,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
             
@@ -128,6 +130,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var result = currentFailureStrategy == FailureStrategies.IgnoreFailure
                 ? new BulkOperationResult<TEntity>(elements.Count)
                 : null;
+            if (elements.Count == 0)
+                return result;
             
             var (needOperatedElements, needNotOperatedElements, needProblemElements)  = GetExtendedFailureInformation(entityProfile);
             NpgsqlTransaction transaction = null;
@@ -138,7 +142,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
                 transaction = connection.BeginTransaction();
             }
-
             if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent)
             {
                 try
