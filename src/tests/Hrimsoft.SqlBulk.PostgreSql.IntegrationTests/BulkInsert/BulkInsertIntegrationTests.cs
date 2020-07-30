@@ -22,12 +22,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
         public async Task SetUp()
         {
             var truncateSimpleTestEntity = "truncate \"unit_tests\".\"simple_test_entity\";";
-            var truncateIntegerEnum = "truncate \"unit_tests\".\"entity_with_int_enum\";";
-            var resetIdSequenceCmd = "ALTER SEQUENCE \"unit_tests\".\"simple_test_entity_id_seq\" RESTART WITH 1;";
+            var truncateIntegerEnum      = "truncate \"unit_tests\".\"entity_with_int_enum\";";
+            var resetIdSequenceCmd       = "ALTER SEQUENCE \"unit_tests\".\"simple_test_entity_id_seq\" RESTART WITH 1;ALTER SEQUENCE \"unit_tests\".\"entity_with_int_enum_id_seq\" RESTART WITH 1;";
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             using (var commandSimpleTestEntity = new NpgsqlCommand($"{truncateSimpleTestEntity}{resetIdSequenceCmd}", connection))
-            using (var commandIntegerEnum = new NpgsqlCommand($"{truncateIntegerEnum}{resetIdSequenceCmd}", connection))
-            {
+            using (var commandIntegerEnum = new NpgsqlCommand($"{truncateIntegerEnum}{resetIdSequenceCmd}", connection)) {
                 await connection.OpenAsync();
                 await commandSimpleTestEntity.ExecuteNonQueryAsync();
                 await commandIntegerEnum.ExecuteNonQueryAsync();
@@ -46,11 +45,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -60,8 +59,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
                 new TestEntity {RecordId = "rec-01", SensorId = "sens-02", Value = 227},
                 new TestEntity {RecordId = "rec-02", SensorId = "sens-02", Value = 228}
             };
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+            using (var connection = new NpgsqlConnection(_configuration.ConnectionString)) {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
@@ -69,12 +67,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("rec-01", elements[0].RecordId);
             Assert.AreEqual("sens-01", elements[0].SensorId);
             Assert.AreEqual(127, elements[0].Value);
-            
+
             Assert.AreEqual(2, elements[1].Id);
             Assert.AreEqual("rec-02", elements[1].RecordId);
             Assert.AreEqual("sens-01", elements[1].SensorId);
             Assert.AreEqual(128, elements[1].Value);
-            
+
             Assert.AreEqual(3, elements[2].Id);
             Assert.AreEqual("rec-01", elements[2].RecordId);
             Assert.AreEqual("sens-02", elements[2].SensorId);
@@ -85,7 +83,58 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("sens-02", elements[3].SensorId);
             Assert.AreEqual(228, elements[3].Value);
         }
-        
+
+        [Test]
+        public async Task Insert_should_work_with_nullable_fields()
+        {
+            var bulkServiceOptions = new BulkServiceOptions();
+            bulkServiceOptions.AddEntityProfile<EntityWithNullableProperty>(new EntityWithNullableProfile());
+
+            var insertCommandBuilder = new InsertSqlCommandBuilder(NullLoggerFactory.Instance);
+            var deleteCommandBuilder = new Mock<IDeleteSqlCommandBuilder>().Object;
+            var updateCommandBuilder = new Mock<IUpdateSqlCommandBuilder>().Object;
+            var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
+
+            var testService = new NpgsqlCommandsBulkService(
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
+                upsertCommandBuilder);
+
+            var elements = new List<EntityWithNullableProperty>
+            {
+                new EntityWithNullableProperty {RecordId = "rec-01", SensorId = "sens-01", Value = 127},
+                new EntityWithNullableProperty {RecordId = "rec-02", SensorId = "sens-01"},
+                new EntityWithNullableProperty {RecordId = "rec-01", SensorId = "sens-02"},
+                new EntityWithNullableProperty {RecordId = "rec-02", SensorId = "sens-02"}
+            };
+            using (var connection = new NpgsqlConnection(_configuration.ConnectionString)) {
+                await testService.InsertAsync(connection, elements, CancellationToken.None);
+            }
+
+            Assert.AreEqual(1, elements[0].Id);
+            Assert.AreEqual("rec-01", elements[0].RecordId);
+            Assert.AreEqual("sens-01", elements[0].SensorId);
+            Assert.AreEqual(127, elements[0].Value);
+
+            Assert.AreEqual(2, elements[1].Id);
+            Assert.AreEqual("rec-02", elements[1].RecordId);
+            Assert.AreEqual("sens-01", elements[1].SensorId);
+            Assert.IsNull(elements[1].Value);
+
+            Assert.AreEqual(3, elements[2].Id);
+            Assert.AreEqual("rec-01", elements[2].RecordId);
+            Assert.AreEqual("sens-02", elements[2].SensorId);
+            Assert.IsNull(elements[2].Value);
+
+            Assert.AreEqual(4, elements[3].Id);
+            Assert.AreEqual("rec-02", elements[3].RecordId);
+            Assert.AreEqual("sens-02", elements[3].SensorId);
+            Assert.IsNull(elements[3].Value);
+        }
+
         [Test]
         public async Task Insert_should_split_correctly_even_number_of_elements()
         {
@@ -98,11 +147,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -112,8 +161,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
                 new TestEntity {RecordId = "rec-01", SensorId = "sens-02", Value = 227},
                 new TestEntity {RecordId = "rec-02", SensorId = "sens-02", Value = 228}
             };
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+            using (var connection = new NpgsqlConnection(_configuration.ConnectionString)) {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
@@ -121,12 +169,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("rec-01", elements[0].RecordId);
             Assert.AreEqual("sens-01", elements[0].SensorId);
             Assert.AreEqual(127, elements[0].Value);
-            
+
             Assert.AreEqual(2, elements[1].Id);
             Assert.AreEqual("rec-02", elements[1].RecordId);
             Assert.AreEqual("sens-01", elements[1].SensorId);
             Assert.AreEqual(128, elements[1].Value);
-            
+
             Assert.AreEqual(3, elements[2].Id);
             Assert.AreEqual("rec-01", elements[2].RecordId);
             Assert.AreEqual("sens-02", elements[2].SensorId);
@@ -137,7 +185,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("sens-02", elements[3].SensorId);
             Assert.AreEqual(228, elements[3].Value);
         }
-        
+
         [Test]
         public async Task Insert_should_split_correctly_odd_number_of_elements()
         {
@@ -150,11 +198,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntity>
@@ -165,8 +213,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
                 new TestEntity {RecordId = "rec-02", SensorId = "sens-02", Value = 228},
                 new TestEntity {RecordId = "rec-03", SensorId = "sens-02", Value = 229}
             };
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+            using (var connection = new NpgsqlConnection(_configuration.ConnectionString)) {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
@@ -174,12 +221,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("rec-01", elements[0].RecordId);
             Assert.AreEqual("sens-01", elements[0].SensorId);
             Assert.AreEqual(127, elements[0].Value);
-            
+
             Assert.AreEqual(2, elements[1].Id);
             Assert.AreEqual("rec-02", elements[1].RecordId);
             Assert.AreEqual("sens-01", elements[1].SensorId);
             Assert.AreEqual(128, elements[1].Value);
-            
+
             Assert.AreEqual(3, elements[2].Id);
             Assert.AreEqual("rec-01", elements[2].RecordId);
             Assert.AreEqual("sens-02", elements[2].SensorId);
@@ -195,8 +242,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual("sens-02", elements[4].SensorId);
             Assert.AreEqual(229, elements[4].Value);
         }
-        
-                [Test]
+
+        [Test]
         public async Task Insert_should_set_enum_value_as_integer()
         {
             var bulkServiceOptions = new BulkServiceOptions();
@@ -208,11 +255,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             var upsertCommandBuilder = new UpsertSqlCommandBuilder(NullLoggerFactory.Instance);
 
             var testService = new NpgsqlCommandsBulkService(
-                bulkServiceOptions, 
-                NullLoggerFactory.Instance, 
-                insertCommandBuilder, 
-                updateCommandBuilder, 
-                deleteCommandBuilder, 
+                bulkServiceOptions,
+                NullLoggerFactory.Instance,
+                insertCommandBuilder,
+                updateCommandBuilder,
+                deleteCommandBuilder,
                 upsertCommandBuilder);
 
             var elements = new List<TestEntityWithEnum>
@@ -222,17 +269,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
                 new TestEntityWithEnum {SomeEnumValue = SomeEnum.SomeValue},
                 new TestEntityWithEnum {SomeEnumValue = SomeEnum.AnotherValue}
             };
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            {
+            using (var connection = new NpgsqlConnection(_configuration.ConnectionString)) {
                 await testService.InsertAsync(connection, elements, CancellationToken.None);
             }
 
             Assert.AreEqual(1, elements[0].Id);
             Assert.AreEqual(SomeEnum.SomeValue, elements[0].SomeEnumValue);
-            
+
             Assert.AreEqual(2, elements[1].Id);
             Assert.AreEqual(SomeEnum.AnotherValue, elements[1].SomeEnumValue);
-            
+
             Assert.AreEqual(3, elements[2].Id);
             Assert.AreEqual(SomeEnum.SomeValue, elements[2].SomeEnumValue);
 

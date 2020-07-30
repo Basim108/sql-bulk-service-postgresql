@@ -33,19 +33,19 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 return NpgsqlDbType.Char;
             }
-            if(propertyType == typeof(byte))
+            if(propertyType == typeof(byte) || propertyType == typeof(Nullable<byte>))
             {
                 return NpgsqlDbType.Smallint;
             }
-            if(propertyType == typeof(int))
+            if(propertyType == typeof(int) || propertyType == typeof(Nullable<int>))
             {
                 return NpgsqlDbType.Integer;
             }
-            if (propertyType == typeof(long))
+            if (propertyType == typeof(long) || propertyType == typeof(Nullable<long>))
             {
                 return NpgsqlDbType.Bigint;
             }
-            if (propertyType == typeof(bool))
+            if (propertyType == typeof(bool) || propertyType == typeof(Nullable<bool>))
             {
                 return NpgsqlDbType.Boolean;
             }
@@ -57,11 +57,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 return NpgsqlDbType.Numeric;
             }
-            if (propertyType == typeof(double))
+            if (propertyType == typeof(double) || propertyType == typeof(Nullable<double>))
             {
                 return NpgsqlDbType.Double;
             }
-            if (propertyType == typeof(float))
+            if (propertyType == typeof(float) || propertyType == typeof(Nullable<float>))
             {
                 return NpgsqlDbType.Real;
             }
@@ -69,15 +69,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 return NpgsqlDbType.Interval;
             }
-            if (propertyType == typeof(DateTime))
+            if (propertyType == typeof(DateTime) || propertyType == typeof(Nullable<DateTime>))
             {
                 return NpgsqlDbType.Timestamp;
             }
-            if (propertyType == typeof(DateTimeOffset))
+            if (propertyType == typeof(DateTimeOffset) || propertyType == typeof(Nullable<DateTimeOffset>))
             {
                 return NpgsqlDbType.TimestampTz;
             }
-            if (propertyType == typeof(TimeSpan))
+            if (propertyType == typeof(TimeSpan) || propertyType == typeof(Nullable<TimeSpan>))
             {
                 return NpgsqlDbType.Bigint;
             }

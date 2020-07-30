@@ -17,15 +17,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             if (entityType == null)
                 throw new ArgumentNullException(nameof(entityType));
-            
+
             this.EntityType = entityType;
             this.Properties = new Dictionary<string, PropertyProfile>();
         }
+
         /// <summary>
         /// Type of entity that owns all these mapped properties
         /// </summary>
         public Type EntityType { get; }
-        
+
         #region command execution options
 
         /// <summary>
@@ -73,15 +74,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         #endregion
 
         #region mapping information
-        
+
         private string _tableName;
         /// <summary>
         /// A table name that represents this entity in the database
         /// </summary>
-        public string TableName
-        {
-            get
-            {
+        public string TableName {
+            get {
                 if (string.IsNullOrWhiteSpace(_tableName))
                     _tableName = $"\"{EntityType.Name.ToSnakeCase()}\"";
 
@@ -99,10 +98,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// Information about properties that all together make a unique value among all  the entity instances in the database
         /// </summary>
         public EntityUniqueConstraint UniqueConstraint { get; private set; }
-        
+
         #endregion
 
         #region methods to tune mapping
+
         /// <summary>
         /// Sets database table name that has to be mapped onto this entity
         /// </summary>
@@ -113,8 +113,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             this.TableName = string.IsNullOrWhiteSpace(dbTableName)
                 ? $"\"{EntityType.Name.ToSnakeCase()}\""
                 : $"\"{dbTableName}\"";
-            if (!string.IsNullOrWhiteSpace(schema))
-            {
+            if (!string.IsNullOrWhiteSpace(schema)) {
                 this.TableName = $"\"{schema}\".{this.TableName}";
             }
         }
@@ -126,7 +125,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
-            
+
             if (UniqueConstraint == null)
                 UniqueConstraint = new EntityUniqueConstraint(name);
             else
@@ -187,7 +186,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             if (propertyExpression == null)
                 throw new ArgumentNullException(nameof(propertyExpression));
-            
+
             var propertyName = "";
 
             if (propertyExpression.Body is MemberExpression memberExpression)
@@ -209,15 +208,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new TypeMappingException(EntityType, propertyName, $"{nameof(EntityProfile)} already contains a property with name {propertyName}");
 
             var propertyProfile = new PropertyProfile(columnName, propertyExpression);
-            propertyProfile.HasColumnType(typeof(TProperty).ToNpgsql());
+            propertyProfile.HasColumnType(typeof(TProperty).ToNpgsql(), typeof(TProperty));
             if (isPartOfUniqueConstraint)
                 propertyProfile.ThatIsPartOfUniqueConstraint();
-            
+
             this.Properties.Add(propertyName, propertyProfile);
 
             return propertyProfile;
         }
-        
+
         #endregion
     }
 }

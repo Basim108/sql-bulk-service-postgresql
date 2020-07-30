@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
@@ -39,6 +40,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (elements.Count == 0)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
+            _logger.LogTrace($"Generating insert sql for {elements.Count} elements.");
+            
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug($"{nameof(TEntity)}: {typeof(TEntity).FullName}");
@@ -82,9 +85,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         var paramName = $"@param{commandParameters.Count}";
                         commandParameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                         {
-                            Value = propInfo.GetPropertyValue(item)
+                            Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
+                            IsNullable = propInfo.IsNullable
                         });
-
                         resultBuilder.Append(delimiter);
                         resultBuilder.Append(paramName);
 

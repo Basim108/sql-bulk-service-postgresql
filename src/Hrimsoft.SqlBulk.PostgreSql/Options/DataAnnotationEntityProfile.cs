@@ -105,7 +105,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 var lambda = Expression.Lambda(funcType, property, parameter);
 
                 var propertyProfile = new PropertyProfile(columnName, lambda);
-                propertyProfile.HasColumnType(columnDbType.Value);
+                propertyProfile.HasColumnType(columnDbType.Value, propertyInfo.PropertyType);
                 if (isPartOfUniqueConstraint)
                     propertyProfile.ThatIsPartOfUniqueConstraint();
 

@@ -52,6 +52,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
             Assert.AreEqual(nameof(TestEntity.Id), ex.PropertyName);
         }
 
+        [Test]
+        public void HasProperty_should_pass_nullable_properties()
+        {
+            var entityProfile = new EntityProfile(typeof(EntityWithNullableProperty));
+            Assert.DoesNotThrow(() => entityProfile.HasProperty<EntityWithNullableProperty, bool?>
+                                    ("value", x => x.Value));
+        }
         
         [Test]
         public void HasProperty_should_pass_member_expressions()

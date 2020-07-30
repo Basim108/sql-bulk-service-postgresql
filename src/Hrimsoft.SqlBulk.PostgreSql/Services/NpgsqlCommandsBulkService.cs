@@ -119,6 +119,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
             
+            _logger.LogTrace($"Preparing a bulk {operation} operation");
+            
             var entityType = typeof(TEntity);
             if (!_options.SupportedEntityTypes.ContainsKey(entityType))
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
@@ -282,6 +284,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentNullException(nameof(connection));
             if (elements == null)
                 throw new ArgumentNullException(nameof(elements));
+            
+            _logger.LogTrace($"Executing portion of {elements.Count} elements. {operation} operation");
             
             if (connection.State != ConnectionState.Open)
                 await connection.OpenAsync(cancellationToken);

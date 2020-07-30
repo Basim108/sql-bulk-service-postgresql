@@ -40,6 +40,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (elements.Count == 0)
                 throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
 
+            _logger.LogTrace($"Generating delete sql for {elements.Count} elements.");
+            
             var result = "";
             var allItemsParameters = new List<NpgsqlParameter>();
 

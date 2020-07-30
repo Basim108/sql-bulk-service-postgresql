@@ -40,6 +40,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (elements.Count == 0)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
+            _logger.LogTrace($"Generating upsert sql for {elements.Count} elements.");
+            
             if(entityProfile.UniqueConstraint == null)
                 throw new ArgumentException($"There is no unique constraint defined in the {entityProfile.GetType().FullName}", nameof(entityProfile));
             if(entityProfile.UniqueConstraint.UniqueProperties.All(p => p == null))
