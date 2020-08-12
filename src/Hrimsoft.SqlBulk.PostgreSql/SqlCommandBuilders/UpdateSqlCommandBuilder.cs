@@ -154,7 +154,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
                     parameters.Add(new NpgsqlParameter(idParamName, propInfo.DbColumnType)
                     {
-                        Value = propInfo.GetPropertyValue(item)
+                        Value = propInfo.GetPropertyValue(item) ?? DBNull.Value,
+                        IsNullable = propInfo.IsNullable
                     });
 
                     firstWhereExpression = false;

@@ -133,6 +133,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 ? new BulkOperationResult<TEntity>(elements.Count)
                 : null;
             if (elements.Count == 0)
+                // TODO: Добавить логирование
                 return result;
             
             var (needOperatedElements, needNotOperatedElements, needProblemElements)  = GetExtendedFailureInformation(entityProfile);

@@ -120,7 +120,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public PropertyProfile ThatIsPartOfUniqueConstraint()
         {
             this.IsPartOfUniqueConstraint = true;
-
             return this;
         }
     }

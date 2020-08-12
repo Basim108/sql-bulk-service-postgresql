@@ -49,12 +49,9 @@ public class UpsertEntityProfile: EntityProfile
         // The name of unique constraint.
         this.HasUniqueConstraint("business_identity");
 
-        // the first possibility how to declare a property as a part of a unique constraint
+        // declaration of a property as a part of a unique constraint
         this.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.RecordId);
-
-        this.HasProperty<TestEntity, string>(entity => entity.SensorId)
-            // the second possibility how to declare a property as a part of a unique constraint
-            .ThatIsPartOfUniqueConstraint();
+        this.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.SensorId);
 
         this.HasProperty<TestEntity, int>(entity => entity.Value);
     }

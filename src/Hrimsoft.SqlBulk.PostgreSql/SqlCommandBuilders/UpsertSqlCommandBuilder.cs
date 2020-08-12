@@ -91,7 +91,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         var paramName = $"@param{commandParameters.Count}";
                         commandParameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                         {
-                            Value = propInfo.GetPropertyValue(item)
+                            Value = propInfo.GetPropertyValue(item) ?? DBNull.Value,
+                            IsNullable = propInfo.IsNullable
                         });
 
                         resultBuilder.Append(delimiter);
