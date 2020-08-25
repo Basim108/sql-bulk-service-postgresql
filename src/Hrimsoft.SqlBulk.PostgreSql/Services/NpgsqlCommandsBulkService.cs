@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -17,11 +18,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     public class NpgsqlCommandsBulkService : IPostgreSqlBulkService
     {
         private readonly ILogger<NpgsqlCommandsBulkService> _logger;
-        private readonly BulkServiceOptions _options;
-        private readonly IInsertSqlCommandBuilder _insertCommandBuilder;
-        private readonly IUpdateSqlCommandBuilder _updateCommandBuilder;
-        private readonly IDeleteSqlCommandBuilder _deleteCommandBuilder;
-        private readonly IUpsertSqlCommandBuilder _upsertCommandBuilder;
+        private readonly BulkServiceOptions                 _options;
+        private readonly IInsertSqlCommandBuilder           _insertCommandBuilder;
+        private readonly IUpdateSqlCommandBuilder           _updateCommandBuilder;
+        private readonly IDeleteSqlCommandBuilder           _deleteCommandBuilder;
+        private readonly IUpsertSqlCommandBuilder           _upsertCommandBuilder;
 
         public NpgsqlCommandsBulkService(
             BulkServiceOptions options,
@@ -31,12 +32,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             IDeleteSqlCommandBuilder deleteCommandBuilder,
             IUpsertSqlCommandBuilder upsertCommandBuilder)
         {
-            _options = options;
+            _options              = options;
             _insertCommandBuilder = insertCommandBuilder;
             _updateCommandBuilder = updateCommandBuilder;
             _deleteCommandBuilder = deleteCommandBuilder;
             _upsertCommandBuilder = upsertCommandBuilder;
-            _logger = loggerFactory.CreateLogger<NpgsqlCommandsBulkService>();
+            _logger               = loggerFactory.CreateLogger<NpgsqlCommandsBulkService>();
         }
 
         /// <summary>
@@ -118,14 +119,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentNullException(nameof(elements));
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
-            
+
             _logger.LogTrace($"Preparing a bulk {operation} operation");
-            
+
             var entityType = typeof(TEntity);
             if (!_options.SupportedEntityTypes.ContainsKey(entityType))
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
-            
-            var entityProfile = _options.SupportedEntityTypes[entityType];
+
+            var entityProfile          = _options.SupportedEntityTypes[entityType];
             var maximumEntitiesPerSent = GetCurrentMaximumSentElements(entityProfile);
             var currentFailureStrategy = GetCurrentFailureStrategy(entityProfile);
 
@@ -133,73 +134,64 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 ? new BulkOperationResult<TEntity>(elements.Count)
                 : null;
             if (elements.Count == 0)
-                // TODO: Добавить логирование
                 return result;
             
-            var (needOperatedElements, needNotOperatedElements, needProblemElements)  = GetExtendedFailureInformation(entityProfile);
+            Stopwatch sw = null;
+            if (_logger.IsEnabled(LogLevel.Information))
+                sw = Stopwatch.StartNew();
+            
+            var (needOperatedElements, needNotOperatedElements, needProblemElements) = GetExtendedFailureInformation(entityProfile);
             NpgsqlTransaction transaction = null;
-            if (currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
-            {
+            if (currentFailureStrategy == FailureStrategies.StopEverythingAndRollback) {
                 if (connection.State != ConnectionState.Open)
                     await connection.OpenAsync(cancellationToken);
 
                 transaction = connection.BeginTransaction();
             }
-            if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent)
-            {
-                try
-                {
+            if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent) {
+                try {
                     await ExecutePortionAsync(operation, connection, elements, entityProfile, cancellationToken);
                     if (transaction != null)
                         await transaction.CommitAsync(cancellationToken);
-
                     result?.Operated.AddRange(elements);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     var notOperatedElements = needNotOperatedElements ? elements : null;
-                    var operatedElements = needOperatedElements ? new List<TEntity>() : null;
-                    var problemElements = needProblemElements ? elements : null;
-                    
+                    var operatedElements    = needOperatedElements ? new List<TEntity>() : null;
+                    var problemElements     = needProblemElements ? elements : null;
+
                     await ProcessFailureAsync(operation, currentFailureStrategy, ex, transaction, operatedElements, notOperatedElements, problemElements, cancellationToken);
                     result?.NotOperated.AddRange(elements);
                 }
             }
-            else
-            {
-                var operated = needOperatedElements ? new List<TEntity>(elements.Count) : null;
+            else {
+                var operated    = needOperatedElements ? new List<TEntity>(elements.Count) : null;
                 var notOperated = needNotOperatedElements ? new List<TEntity>(elements.Count) : null;
-                var problem = needProblemElements ? new List<TEntity>(maximumEntitiesPerSent) : null;
-                
+                var problem     = needProblemElements ? new List<TEntity>(maximumEntitiesPerSent) : null;
+
                 var iterations = Math.Round((decimal) elements.Count / maximumEntitiesPerSent, MidpointRounding.AwayFromZero);
-                for (var i = 0; i < iterations; i++)
-                {
+                for (var i = 0; i < iterations; i++) {
                     var portion = elements.Skip(i * maximumEntitiesPerSent).Take(maximumEntitiesPerSent).ToList();
-                    try
-                    {
+                    try {
                         await ExecutePortionAsync(operation, connection, portion, entityProfile, cancellationToken);
                         operated?.AddRange(portion);
                         result?.Operated.AddRange(portion);
                     }
-                    catch (Exception ex)
-                    {
-                        if(currentFailureStrategy != FailureStrategies.IgnoreFailure)
+                    catch (Exception ex) {
+                        if (currentFailureStrategy != FailureStrategies.IgnoreFailure)
                             problem?.AddRange(portion);
-                        
+
                         result?.NotOperated.AddRange(portion);
-                        
-                        switch (currentFailureStrategy)
-                        {
+
+                        switch (currentFailureStrategy) {
                             // Ignore strategy is ignored here because it does not throw an SqlBulkExecutionException
-                            
-                            case FailureStrategies.StopEverything:
-                            {
+
+                            case FailureStrategies.StopEverything: {
                                 //Since i is not incremented yet, this command will add current portion to notOperated as well as the rest of elements 
                                 notOperated?.AddRange(elements.Skip(i * maximumEntitiesPerSent).ToList());
                                 break;
                             }
-                            case FailureStrategies.StopEverythingAndRollback:
-                            {
+                            case FailureStrategies.StopEverythingAndRollback: {
                                 operated?.Clear();
                                 notOperated?.AddRange(elements);
                                 break;
@@ -209,58 +201,67 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     }
                 }
             }
+            if (sw != null) {
+                sw.Stop();
+                _logger.LogInformation($"Executed bulk {operation} operation of {elements.Count} in {sw.ElapsedMilliseconds} milliseconds");
+            }
             return result;
         }
 
         private ISqlCommandBuilder GetCommandBuilder(SqlOperation operation)
         {
             ISqlCommandBuilder result = null;
-            switch (operation)
-            {
-                case SqlOperation.Insert: result = _insertCommandBuilder; break;
-                case SqlOperation.Update: result = _updateCommandBuilder; break;
-                case SqlOperation.Delete: result = _deleteCommandBuilder; break;
-                case SqlOperation.Upsert: result = _upsertCommandBuilder; break;
+            switch (operation) {
+                case SqlOperation.Insert:
+                    result = _insertCommandBuilder;
+                    break;
+                case SqlOperation.Update:
+                    result = _updateCommandBuilder;
+                    break;
+                case SqlOperation.Delete:
+                    result = _deleteCommandBuilder;
+                    break;
+                case SqlOperation.Upsert:
+                    result = _upsertCommandBuilder;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(operation), operation, $"Sql operation {operation} is not supported");
             }
             return result;
         }
 
-
         private (bool NeedOperated, bool NeedNotOperated, bool NeedProblem) GetExtendedFailureInformation(EntityProfile entityProfile)
         {
             if (entityProfile == null)
                 throw new ArgumentNullException(nameof(entityProfile));
-            
-            var needOperated = entityProfile.IsOperatedElementsEnabled ?? _options.IsOperatedElementsEnabled;
+
+            var needOperated    = entityProfile.IsOperatedElementsEnabled    ?? _options.IsOperatedElementsEnabled;
             var needNotOperated = entityProfile.IsNotOperatedElementsEnabled ?? _options.IsNotOperatedElementsEnabled;
-            var needProblem = entityProfile.IsProblemElementsEnabled ?? _options.IsProblemElementsEnabled;
+            var needProblem     = entityProfile.IsProblemElementsEnabled     ?? _options.IsProblemElementsEnabled;
             return (needOperated, needNotOperated, needProblem);
         }
 
         private async Task ProcessFailureAsync<TEntity>(
-            SqlOperation operation, 
-            FailureStrategies currentFailureStrategy, 
-            Exception ex, 
-            NpgsqlTransaction transaction, 
-            ICollection<TEntity> operatedElements, 
-            ICollection<TEntity> notOperatedElements, 
-            ICollection<TEntity> problemElements, 
+            SqlOperation operation,
+            FailureStrategies currentFailureStrategy,
+            Exception ex,
+            NpgsqlTransaction transaction,
+            ICollection<TEntity> operatedElements,
+            ICollection<TEntity> notOperatedElements,
+            ICollection<TEntity> problemElements,
             CancellationToken cancellationToken) where TEntity : class
         {
             if (ex == null)
                 throw new ArgumentNullException(nameof(ex));
-            
+
             _logger.LogError(ex, "Bulk command execution failed");
 
             if (transaction != null)
                 await transaction.RollbackAsync(cancellationToken);
 
             if (currentFailureStrategy == FailureStrategies.StopEverything ||
-                currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
-            {
-                throw new SqlBulkExecutionException<TEntity>(ex, operation, currentFailureStrategy,problemElements, notOperatedElements, operatedElements);
+                currentFailureStrategy == FailureStrategies.StopEverythingAndRollback) {
+                throw new SqlBulkExecutionException<TEntity>(ex, operation, currentFailureStrategy, problemElements, notOperatedElements, operatedElements);
             }
         }
 
@@ -285,31 +286,29 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentNullException(nameof(connection));
             if (elements == null)
                 throw new ArgumentNullException(nameof(elements));
-            
+
             _logger.LogTrace($"Executing portion of {elements.Count} elements. {operation} operation");
-            
+            Stopwatch sw = null;
+            if (_logger.IsEnabled(LogLevel.Information))
+                sw = Stopwatch.StartNew();
+
             if (connection.State != ConnectionState.Open)
                 await connection.OpenAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             var commandBuilder = GetCommandBuilder(operation);
-            
+
             var commandResult = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            using (var command = new NpgsqlCommand(commandResult.Command, connection))
-            {
-                foreach (var param in commandResult.Parameters)
-                {
+            using (var command = new NpgsqlCommand(commandResult.Command, connection)) {
+                foreach (var param in commandResult.Parameters) {
                     command.Parameters.Add(param);
                 }
 
                 using (var reader = await command.ExecuteReaderAsync(cancellationToken))
-                using (var elementsEnumerator = elements.GetEnumerator())
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        if (!elementsEnumerator.MoveNext())
-                        {
+                using (var elementsEnumerator = elements.GetEnumerator()) {
+                    while (await reader.ReadAsync(cancellationToken)) {
+                        if (!elementsEnumerator.MoveNext()) {
                             var message =
                                 $"There is no more items in the elements collection, but reader still has tuples to read.elements.{nameof(elements.Count)}: {elements.Count}";
                             _logger.LogError(message);
@@ -322,6 +321,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
                     await reader.CloseAsync();
                 }
+            }
+            if (sw != null) {
+                sw.Stop();
+                _logger.LogInformation($"Executed portion of {elements.Count} elements. {operation} operation in {sw.ElapsedMilliseconds} milliseconds");
             }
         }
 
@@ -353,14 +356,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken cancellationToken)
             where TEntity : class
         {
-            foreach (var propInfoPair in propertyProfiles)
-            {
+            foreach (var propInfoPair in propertyProfiles) {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (operation == SqlOperation.Insert && propInfoPair.Value.IsUpdatedAfterInsert ||
                     operation == SqlOperation.Update && propInfoPair.Value.IsUpdatedAfterUpdate ||
-                    operation == SqlOperation.Upsert && (propInfoPair.Value.IsUpdatedAfterInsert || propInfoPair.Value.IsUpdatedAfterUpdate))
-                {
+                    operation == SqlOperation.Upsert && (propInfoPair.Value.IsUpdatedAfterInsert || propInfoPair.Value.IsUpdatedAfterUpdate)) {
                     var value = reader[propInfoPair.Key];
                     propInfoPair.Value.SetPropertyValue(item, value);
                 }

@@ -10,6 +10,7 @@ create table "unit_tests"."entity_with_unique_columns"
 	record_id text,
 	sensor_id text,
     value integer,
+    nullable_value integer,
     constraint business_identity unique (record_id, sensor_id)
 );
 
