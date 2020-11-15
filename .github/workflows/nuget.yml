@@ -31,7 +31,7 @@ jobs:
       run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
     - name: 'Unit tests'
-      run:  dotnet test ${{ TESTS_PROJECT_PATH }}
+      run:  dotnet test ${{ env.TESTS_PROJECT_PATH }}
 
     - name: 'Get Version'
       id: version
