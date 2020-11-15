@@ -1,0 +1,29 @@
+name: "CI"
+
+on: [push, pull_request]
+
+env:
+  PROJECT_PATH: 'src/Hrimsoft.SqlBulk.PostgreSql/Hrimsoft.SqlBulk.PostgreSql.csproj'
+  TESTS_PROJECT_PATH: 'src/tests/Hrimsoft.SqlBulk.PostgreSql.Tests/Hrimsoft.SqlBulk.PostgreSql.Tests.csproj'
+  
+jobs:
+  build:
+    name: 'Build'
+    runs-on: 'windows-latest'
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v2
+
+    - name: 'Install dotnet'
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: 'Build project'
+      run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
+
+    - name: 'Unit tests'
+      run:  dotnet test ${{ TESTS_PROJECT_PATH }}
