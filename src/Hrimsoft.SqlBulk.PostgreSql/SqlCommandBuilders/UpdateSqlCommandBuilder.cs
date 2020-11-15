@@ -156,11 +156,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var message = $"an error occurred while calculating {paramName}";
                     throw new SqlGenerationException(SqlOperation.Update, message, ex);
                 }
-                var setParamName = $"{paramName}_{elementIndex}_new_value";
                 try {
                     var setExpressionDelimiter = firstSetExpression ? "" : ",";
-                    commandBuilder.Append($"{setExpressionDelimiter}\"{propInfo.DbColumnName}\"={setParamName}");
-                    parameters.Add(new NpgsqlParameter(setParamName, propInfo.DbColumnType)
+                    commandBuilder.Append($"{setExpressionDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
+                    parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                     {
                         Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
                         IsNullable = propInfo.IsNullable
@@ -168,7 +167,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     firstSetExpression = false;
                 }
                 catch (Exception ex) {
-                    var message = $"an error occurred while calculating {setParamName}";
+                    var message = $"an error occurred while calculating {paramName}";
                     throw new SqlGenerationException(SqlOperation.Update, message, ex);
                 }
             }

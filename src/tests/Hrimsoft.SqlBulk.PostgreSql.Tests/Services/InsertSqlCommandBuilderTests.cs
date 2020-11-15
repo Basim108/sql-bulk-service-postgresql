@@ -15,7 +15,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
     {
         private InsertSqlCommandBuilder _testService;
         private const string INSERT_PATTERN =
-@"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param\d+(,\s*@param\d+)*\s*\)\s*(,\s*\(\s*@param\d+(,\s*@param\d+)*\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
+@"insert\s+into\s+(""\w+"".)?""\w+""\s*\(\s*""\w+""(,\s*""\w+"")*\s*\)\s*values\s*\(\s*@param_\w+_\d+\s*,\s*@param_\w+_\d+,\s*@param_\w+_\d+\s*\)\s*(,\s*\(\s*@param_\w+_\d+\s*,\s*@param_\w+_\d+,\s*@param_\w+_\d+\s*\))*\s*(returning\s+""\w+""\s*(,\s*""\w+"")*)?;";
 
         [SetUp]
         public void SetUp()

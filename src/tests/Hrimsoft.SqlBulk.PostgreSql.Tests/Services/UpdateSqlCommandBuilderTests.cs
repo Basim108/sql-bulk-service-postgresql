@@ -15,7 +15,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
     {
         private UpdateSqlCommandBuilder _testService;
         private const string UPDATE_PATTERN = 
-@"(update\s+(""\w+"".)?""\w+""\s+set\s+""\w+""\s*=\s*@param\d+(,""\w+""\s*=\s*@param\d+)*\s+where\s+""\w+""\s*=\s*@param\d+(\s+returning\s+""\w+""\s*(,\s*""\w+"")*)?\s*;?)+";
+@"(update\s+(""\w+"".)?""\w+""\s+set\s+""\w+""\s*=\s*@param_\w+_\d+(,""\w+""\s*=\s*@param_\w+_\d+)*\s+where\s+""\w+""\s*=\s*@param_\w+_\d+(\s+returning\s+""\w+""\s*(,\s*""\w+"")*)?\s*;?)+";
 
         [SetUp]
         public void SetUp()
@@ -313,7 +313,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             
             // pattern should match "id" whatever builder put the "id" column in any order where "id" = @param1;  or where ""value"=@param1, "id"=@param2;
-            var pattern = "where\\s+(\"id\"\\s*=\\s*@param\\d+|\\s*\"record_id\"\\s*=\\s*@param\\d+)\\s*(,\\s*\"id\"\\s*=\\s*@param\\d+|,\\s*\"record_id\"\\s*=\\s*@param\\d+)";
+            var pattern = "where\\s+(\"id\"\\s*=\\s*@param_\\w+_\\d+|\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)\\s*(,\\s*\"id\"\\s*=\\s*@param_\\w+_\\d+|,\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
         }
     }
