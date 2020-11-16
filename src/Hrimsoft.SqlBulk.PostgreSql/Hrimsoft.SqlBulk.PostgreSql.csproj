@@ -13,7 +13,6 @@ Added friendly sql-parameter names and more diagnostic information</Description>
         <AssemblyVersion>1.1.0.6</AssemblyVersion>
         <FileVersion>1.1.0.6</FileVersion>
         <Company>Hrimsoft</Company>
-        <PackageVersion>1.1.6</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReleaseNotes>Fixed unit tests and building of update param names</PackageReleaseNotes>
     </PropertyGroup>
