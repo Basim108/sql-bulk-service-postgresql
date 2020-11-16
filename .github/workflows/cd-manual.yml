@@ -1,9 +1,12 @@
-name: "CD to Nuget"
+name: "manual CD to Nuget"
 
 on:
-  release:
-    types: [published]
-
+  workflow_dispatch:
+    inputs:
+      version: 
+        description: 'Nuget Package Version'
+        required: true
+        default: 1.1.6
 env:
   PROJECT_PATH: 'src/Hrimsoft.SqlBulk.PostgreSql/Hrimsoft.SqlBulk.PostgreSql.csproj'
   TESTS_PROJECT_PATH: 'src/tests/Hrimsoft.SqlBulk.PostgreSql.Tests/Hrimsoft.SqlBulk.PostgreSql.Tests.csproj'
@@ -33,7 +36,7 @@ jobs:
       run:  dotnet test ${{ env.TESTS_PROJECT_PATH }}
 
     - name: 'Pack project'
-      run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:PackageVersion=${{ github.event.release.tag_name }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
+      run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release --include-symbols -p:PackageVersion=${{ github.event.inputs.version }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
 
     - name: 'Push package'
       run: dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIRECTORY }}\*.nupkg -k ${{ secrets.NUGET_AUTH_TOKEN }} -s ${{ env.NUGET_SOURCE_URL }}
