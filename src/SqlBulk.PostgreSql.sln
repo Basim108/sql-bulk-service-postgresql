@@ -8,6 +8,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hrimsoft.SqlBulk.PostgreSql.Tests", "tests\Hrimsoft.SqlBulk.PostgreSql.Tests\Hrimsoft.SqlBulk.PostgreSql.Tests.csproj", "{054E56A1-FE7D-408A-9B76-7030513B7F97}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{66B5681A-924F-4EE9-AA81-74819D3F8747}"
+ProjectSection(SolutionItems) = preProject
+	..\.gitignore = ..\.gitignore
+	..\README.md = ..\README.md
+	..\LICENSE = ..\LICENSE
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{155FD67B-4DC2-4423-91ED-64CA890DB181}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "worflows", "worflows", "{EAAD5E9E-9261-41C6-B677-EDF06435ACE3}"
+ProjectSection(SolutionItems) = preProject
+	..\.github\workflows\cd.manual.yml = ..\.github\workflows\cd.manual.yml
+	..\.github\workflows\cd.yml = ..\.github\workflows\cd.yml
+	..\.github\workflows\ci.yml = ..\.github\workflows\ci.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +46,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{CDA06F7A-12CE-4490-86AF-5C1225A42341} = {A5A1AF75-AA82-4101-9A0F-6918D9895C1B}
 		{054E56A1-FE7D-408A-9B76-7030513B7F97} = {A5A1AF75-AA82-4101-9A0F-6918D9895C1B}
+		{155FD67B-4DC2-4423-91ED-64CA890DB181} = {66B5681A-924F-4EE9-AA81-74819D3F8747}
+		{EAAD5E9E-9261-41C6-B677-EDF06435ACE3} = {155FD67B-4DC2-4423-91ED-64CA890DB181}
 	EndGlobalSection
 EndGlobal

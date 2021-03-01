@@ -2,24 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>Hrimsoft.PostgreSqlBulkService</PackageId>
         <Title>Hrimsoft.PostgreSqlBulkService</Title>
         <Authors>Basim Al-Jawahery</Authors>
-        <Description>Provides bulk operations (upsert, insert, update, delete) on postgresql.
-Added friendly sql-parameter names and more diagnostic information</Description>
+        <Description>Provides bulk operations (upsert, insert, update, delete) on postgresql. 
++ BulkServiceOptions now accessable through service collection by IBulkServiceOptions
++Added friendly sql-parameter names and more diagnostic information</Description>
         <PackageProjectUrl>https://github.com/Basim108/postgresql-bulk-service</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Basim108/postgresql-bulk-service</RepositoryUrl>
-        <AssemblyVersion>1.1.0.6</AssemblyVersion>
-        <FileVersion>1.1.0.6</FileVersion>
         <Company>Hrimsoft</Company>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageReleaseNotes>Fixed unit tests and building of update param names</PackageReleaseNotes>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <DebugSymbols>true</DebugSymbols>
-      <DebugType>full</DebugType>
+        <PackageReleaseNotes>BulkServiceOptions accessable through service collection by IBulkServiceOptions</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

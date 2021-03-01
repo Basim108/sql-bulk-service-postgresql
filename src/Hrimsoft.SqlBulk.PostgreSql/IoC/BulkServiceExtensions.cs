@@ -24,6 +24,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var options = new BulkServiceOptions();
             setupAction(options);
 
+            services.AddSingleton<IBulkServiceOptions>(options);
             services.AddTransient<IInsertSqlCommandBuilder, InsertSqlCommandBuilder>();
             services.AddTransient<IUpdateSqlCommandBuilder, UpdateSqlCommandBuilder>();
             services.AddTransient<IDeleteSqlCommandBuilder, SimpleDeleteSqlCommandBuilder>();
