@@ -14,6 +14,47 @@ create table "unit_tests"."entity_with_unique_columns"
     constraint business_identity unique (record_id, sensor_id)
 );
 
+
+create table "unit_tests"."entity_with_int_enum"
+(
+    id serial not null
+        constraint entity_with_int_enum_pk primary key,
+    some_enum_value integer
+);
+
+create table "unit_tests"."entity_with_string_enum"
+(
+    id serial not null
+        constraint entity_with_string_enum_pk primary key,
+    some_enum_value varchar
+);
+
+-- ------------- after update tests ----------------
+
+--drop table "unit_tests"."after_update_tests";
+create table "unit_tests"."after_update_tests"
+(
+    id serial not null
+        constraint after_update_tests_pk primary key,
+    record text,
+    sensor text,
+    value integer
+);
+
+--drop trigger "after_update_tests_change_record_trigger" on "unit_tests"."after_update_tests";
+--drop function after_update_tests_change_record_after_update;
+
+create or replace function after_update_tests_change_record_after_update() returns trigger as $$
+begin
+        new."record" = 'new-value-changed-by-trigger';
+        new."value" = new.value - 1;
+return new;
+end
+$$ language plpgsql;
+
+create trigger after_update_tests_change_record_trigger before update on "unit_tests"."after_update_tests"
+    for each row execute procedure after_update_tests_change_record_after_update();
+
 --drop table "unit_tests"."simple_test_entity";
 create table "unit_tests"."simple_test_entity"
 (

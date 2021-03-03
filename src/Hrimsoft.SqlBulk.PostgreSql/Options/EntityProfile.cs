@@ -76,11 +76,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         #region mapping information
 
         private string _tableName;
+
         /// <summary>
         /// A table name that represents this entity in the database
         /// </summary>
-        public string TableName {
-            get {
+        public string TableName
+        {
+            get
+            {
                 if (string.IsNullOrWhiteSpace(_tableName))
                     _tableName = $"\"{EntityType.Name.ToSnakeCase()}\"";
 
@@ -113,7 +116,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             this.TableName = string.IsNullOrWhiteSpace(dbTableName)
                 ? $"\"{EntityType.Name.ToSnakeCase()}\""
                 : $"\"{dbTableName}\"";
-            if (!string.IsNullOrWhiteSpace(schema)) {
+            if (!string.IsNullOrWhiteSpace(schema))
+            {
                 this.TableName = $"\"{schema}\".{this.TableName}";
             }
         }
@@ -193,7 +197,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 propertyName = memberExpression.Member.Name;
             else if (propertyExpression.Body is ParameterExpression parameterExpression)
                 propertyName = parameterExpression.Name;
-
+            else if (propertyExpression.Body is UnaryExpression unaryExpression &&
+                     unaryExpression.Operand is MemberExpression operand)
+                propertyName = operand.Member.Name;
             if (string.IsNullOrWhiteSpace(propertyName))
                 propertyName = column;
 

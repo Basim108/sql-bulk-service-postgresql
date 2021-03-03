@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
 {
-    public class EntityProfileTests
+    public class EntityProfileHasPropertyTests
     {
         [Test]
         public void HasProperty_should_pass_binary_expressions()
@@ -16,6 +16,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
             Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>("value", x => x.Id + 10));
         }
 
+        [Test]
+        public void HasProperty_should_pass_convert_expressions()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, long>(x => (long)x.Id));
+        }
+        
         [Test]
         public void HasProperty_should_pass_constant_expressions()
         {
