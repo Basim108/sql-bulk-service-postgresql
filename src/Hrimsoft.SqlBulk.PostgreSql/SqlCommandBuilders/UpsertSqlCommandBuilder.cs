@@ -28,7 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql upset command and collection of database parameters</returns>
-        public SqlCommandBuilderResult Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile, CancellationToken cancellationToken)
+        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile, CancellationToken cancellationToken)
             where TEntity : class
         {
             if (elements == null)
@@ -116,12 +116,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var result = resultBuilder.ToString();
             if (_logger.IsEnabled(LogLevel.Debug))
                 _logger.LogDebug($"result command: {result}");
-            return new SqlCommandBuilderResult
-            {
-                Command                = result,
-                Parameters             = commandParameters,
-                IsThereReturningClause = hasReturningClause
-            };
+            return new List<SqlCommandBuilderResult>
+                   {
+                       new SqlCommandBuilderResult
+                       {
+                           Command                = result,
+                           Parameters             = commandParameters,
+                           IsThereReturningClause = hasReturningClause
+                       }
+                   };
         }
 
         /// <summary>

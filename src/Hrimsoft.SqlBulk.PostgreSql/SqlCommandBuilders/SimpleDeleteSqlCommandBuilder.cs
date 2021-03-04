@@ -28,8 +28,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql delete command and collection of database parameters</returns>
-        public SqlCommandBuilderResult Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
-            CancellationToken cancellationToken)
+        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
+                                                                CancellationToken    cancellationToken)
             where TEntity : class
         {
             if (elements == null)
@@ -45,22 +45,26 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var result             = "";
             var allItemsParameters = new List<NpgsqlParameter>();
 
-            if (_logger.IsEnabled(LogLevel.Debug)) {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
                 _logger.LogDebug($"{nameof(TEntity)}: {typeof(TEntity).FullName}");
                 _logger.LogDebug($"{nameof(elements)}.Count: {elements.Count}");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             var allElementsAreNull = true;
-            using (var elementsEnumerator = elements.GetEnumerator()) {
+            using (var elementsEnumerator = elements.GetEnumerator())
+            {
                 var thereIsMoreElements = true;
                 var elementIndex        = -1;
                 // ignore all null items until find the first not null item
-                while (elementsEnumerator.Current == null && thereIsMoreElements) {
+                while (elementsEnumerator.Current == null && thereIsMoreElements)
+                {
                     elementIndex++;
                     thereIsMoreElements = elementsEnumerator.MoveNext();
                 }
-                if (thereIsMoreElements) {
+                if (thereIsMoreElements)
+                {
                     allElementsAreNull = false;
                     var (commandForOneItem, itemParameters)
                         = GenerateForItem(entityProfile, elementsEnumerator.Current, null, elementIndex);
@@ -74,7 +78,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var resultBuilder = new StringBuilder(entireCommandLength);
                     resultBuilder.AppendLine(commandForOneItem);
 
-                    while (elementsEnumerator.MoveNext()) {
+                    while (elementsEnumerator.MoveNext())
+                    {
                         elementIndex++;
                         // ignore all null items 
                         if (elementsEnumerator.Current == null)
@@ -94,12 +99,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (allElementsAreNull)
                 throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
 
-            return new SqlCommandBuilderResult
-            {
-                Command                = result,
-                Parameters             = allItemsParameters,
-                IsThereReturningClause = false
-            };
+            return new List<SqlCommandBuilderResult>
+                   {
+                       new SqlCommandBuilderResult
+                       {
+                           Command                = result,
+                           Parameters             = allItemsParameters,
+                           IsThereReturningClause = false
+                       }
+                   };
         }
 
         /// <summary>
@@ -111,7 +119,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="elementIndex">As this method is called for each item, this value will be added to the sql parameter name</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
         public (string Command, ICollection<NpgsqlParameter> Parameters) GenerateForItem<TEntity>(EntityProfile entityProfile,
-            TEntity item, StringBuilder externalBuilder, int elementIndex)
+                                                                                                  TEntity       item, StringBuilder externalBuilder, int elementIndex)
             where TEntity : class
         {
             if (item == null)
@@ -126,21 +134,24 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var parameters           = new List<NpgsqlParameter>();
             var firstWhereExpression = true;
 
-            foreach (var propInfo in entityProfile.Properties.Values) {
+            foreach (var propInfo in entityProfile.Properties.Values)
+            {
                 var paramName = $"@param_{propInfo.DbColumnName}_{elementIndex}";
-                try {
+                try
+                {
                     if (!propInfo.IsPrivateKey)
                         continue;
                     var whereDelimiter = firstWhereExpression ? "" : ",";
                     commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
                     parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
-                    {
-                        Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
-                        IsNullable = propInfo.IsNullable
-                    });
+                                   {
+                                       Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
+                                       IsNullable = propInfo.IsNullable
+                                   });
                     firstWhereExpression = false;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     var message = $"an error occurred while calculating {paramName}";
                     throw new SqlGenerationException(SqlOperation.Delete, message, ex);
                 }
@@ -155,7 +166,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 ? commandBuilder.ToString()
                 : ""; // In order to allow append next elements externalBuilder must not be flashed to string.
 
-            if (_logger.IsEnabled(LogLevel.Debug)) {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
                 _logger.LogDebug($"command: {command}");
             }
 

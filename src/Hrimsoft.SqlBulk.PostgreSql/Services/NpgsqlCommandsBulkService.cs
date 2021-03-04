@@ -299,27 +299,32 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             var commandBuilder = GetCommandBuilder(operation);
 
-            var commandResult = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            using (var command = new NpgsqlCommand(commandResult.Command, connection)) {
-                foreach (var param in commandResult.Parameters) {
-                    command.Parameters.Add(param);
-                }
+            var generatedCommands = commandBuilder.Generate(elements, entityProfile, cancellationToken);
+            foreach (var commandResult in generatedCommands)
+            {
+                using (var command = new NpgsqlCommand(commandResult.Command, connection))
+                {
+                    foreach (var param in commandResult.Parameters)
+                        command.Parameters.Add(param);
+                    using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                    using (var elementsEnumerator = elements.GetEnumerator())
+                    {
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            if (!elementsEnumerator.MoveNext())
+                            {
+                                var message =
+                                    $"There is no more items in the elements collection, but reader still has tuples to read.elements.{nameof(elements.Count)}: {elements.Count}";
+                                _logger.LogError(message);
+                                throw new SqlBulkExecutionException<TEntity>(message);
+                            }
 
-                using (var reader = await command.ExecuteReaderAsync(cancellationToken))
-                using (var elementsEnumerator = elements.GetEnumerator()) {
-                    while (await reader.ReadAsync(cancellationToken)) {
-                        if (!elementsEnumerator.MoveNext()) {
-                            var message =
-                                $"There is no more items in the elements collection, but reader still has tuples to read.elements.{nameof(elements.Count)}: {elements.Count}";
-                            _logger.LogError(message);
-                            throw new SqlBulkExecutionException<TEntity>(message);
+                            if (commandResult.IsThereReturningClause)
+                                UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, operation, cancellationToken);
                         }
 
-                        if (commandResult.IsThereReturningClause)
-                            UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, operation, cancellationToken);
+                        await reader.CloseAsync();
                     }
-
-                    await reader.CloseAsync();
                 }
             }
             if (sw != null) {

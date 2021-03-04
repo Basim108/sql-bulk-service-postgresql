@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
@@ -33,7 +34,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
             {
                 new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", IntValue = 127 },
             };
-            var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
+            
             Assert.NotNull(commandResult.Command);
 
             var upsertSetPattern = "(set\\s+\"record_id\"\\s*=\\s*(\"\\w+\".)?\"\\w+\".\"\\w+\"\\s*)|,\\s*\"record_id\"\\s*=";

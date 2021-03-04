@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -35,7 +36,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {IntValue = 127, RecordId = "ddd"},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsFalse(commandResult.Command.Contains("@param_value_"));
@@ -51,7 +55,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableInt = 127},
                                new EntityWithNullableProperty {NullableInt = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsTrue(commandResult.Command.Contains("null"));
@@ -67,7 +74,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {ShortValue = 127}
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
@@ -83,13 +93,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableShort = 127},
                                new EntityWithNullableProperty {NullableShort = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsTrue(commandResult.Command.Contains("null"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
         }
-        
+
         [Test]
         public void Insert_should_not_compile_float_properties()
         {
@@ -99,7 +112,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {FloatValue = 127.1234f}
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127.1234"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
@@ -115,13 +131,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableFloat = 127.1234f},
                                new EntityWithNullableProperty {NullableFloat = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127.1234"));
             Assert.IsTrue(commandResult.Command.Contains("null"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
         }
-        
+
         [Test]
         public void Insert_should_not_compile_double_properties()
         {
@@ -131,7 +150,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {DoubleValue = 127.1234d}
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127.1234"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
@@ -147,13 +169,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableDouble = 127.1234d},
                                new EntityWithNullableProperty {NullableDouble = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127.1234"));
             Assert.IsTrue(commandResult.Command.Contains("null"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
         }
-        
+
         [Test]
         public void Insert_should_not_compile_decimal_properties()
         {
@@ -163,7 +188,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {DecimalValue = 127}
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
@@ -179,14 +207,17 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableDecimal = 127},
                                new EntityWithNullableProperty {NullableDecimal = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("127"));
             Assert.IsTrue(commandResult.Command.Contains("null"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
         }
-        
-        
+
+
         [Test]
         public void Insert_should_not_compile_bool_properties()
         {
@@ -196,7 +227,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                            {
                                new TestEntity {BoolValue = true}
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("true"));
             Assert.IsFalse(commandResult.Command.Contains("@param_"));
@@ -212,7 +246,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
                                new EntityWithNullableProperty {NullableBool = false},
                                new EntityWithNullableProperty {NullableBool = null},
                            };
-            var commandResult = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            var commands = _testService.Generate(elements, _entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
             Assert.IsTrue(commandResult.Command.Contains("false"));
             Assert.IsTrue(commandResult.Command.Contains("null"));

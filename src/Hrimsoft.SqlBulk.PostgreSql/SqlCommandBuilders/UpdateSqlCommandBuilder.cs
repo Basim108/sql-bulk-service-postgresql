@@ -29,8 +29,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql update command and collection of database parameters</returns>
-        public SqlCommandBuilderResult Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
-            CancellationToken cancellationToken)
+        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
+                                                                CancellationToken    cancellationToken)
             where TEntity : class
         {
             if (elements == null)
@@ -96,12 +96,15 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (allElementsAreNull)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
-            return new SqlCommandBuilderResult
-            {
-                Command                = result,
-                Parameters             = allItemsParameters,
-                IsThereReturningClause = isThereReturningClause
-            };
+            return new List<SqlCommandBuilderResult>
+                   {
+                       new SqlCommandBuilderResult
+                       {
+                           Command                = result,
+                           Parameters             = allItemsParameters,
+                           IsThereReturningClause = isThereReturningClause
+                       }
+                   };
         }
 
         /// <summary>
