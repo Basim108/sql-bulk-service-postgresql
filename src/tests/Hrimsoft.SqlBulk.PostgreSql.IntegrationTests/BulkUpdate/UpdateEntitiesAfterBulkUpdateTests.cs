@@ -12,9 +12,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
 {
     public class UpdateEntitiesAfterBulkUpdateTests
     {
-        private readonly TestConfiguration _configuration;
-        private NpgsqlCommandsBulkService _testService;
-        
+        private readonly TestConfiguration         _configuration;
+        private          NpgsqlCommandsBulkService _testService;
+
         public UpdateEntitiesAfterBulkUpdateTests()
         {
             _configuration = new TestConfiguration("Postgres_higher_than_9_4");
@@ -23,15 +23,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
         [SetUp]
         public async Task SetUp()
         {
-            var truncateTableCmd = "truncate \"unit_tests\".\"after_update_tests\";";
+            var truncateTableCmd   = "truncate \"unit_tests\".\"after_update_tests\";";
             var resetIdSequenceCmd = "alter sequence \"unit_tests\".\"after_update_tests_id_seq\" restart with 1;";
-            using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
-            using (var command = new NpgsqlCommand($"{truncateTableCmd}{resetIdSequenceCmd}", connection))
-            {
-                await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
-            }
-            
+
+            await using var connection = new NpgsqlConnection(_configuration.ConnectionString);
+            await using var command    = new NpgsqlCommand($"{truncateTableCmd}{resetIdSequenceCmd}", connection);
+            await connection.OpenAsync();
+            await command.ExecuteNonQueryAsync();
+
             var bulkServiceOptions = new BulkServiceOptions();
             bulkServiceOptions.AddEntityProfile<AfterUpdateEntity>(new AfterUpdateEntityProfile());
 
@@ -52,11 +51,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
         [Test]
         public async Task Properties_marked_as_must_update_should_be_updated()
         {
-
             var elements = new List<AfterUpdateEntity>
-            {
-                new AfterUpdateEntity {Record = "rec-01", Sensor = "sens-01", Value = 127}
-            };
+                           {
+                               new AfterUpdateEntity {Record = "rec-01", Sensor = "sens-01", Value = 127}
+                           };
             using (var connection = new NpgsqlConnection(_configuration.ConnectionString))
             {
                 await _testService.InsertAsync(connection, elements, CancellationToken.None);
