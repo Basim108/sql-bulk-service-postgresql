@@ -65,7 +65,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                                 + (returningClause?.Length ?? 0));
             resultBuilder.Append(commandHeader);
 
-            var paramsPerElement = 0;
             var elementIndex     = -1;
             using (var elementsEnumerator = elements.GetEnumerator())
             {
@@ -75,7 +74,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (item == null)
                         continue;
                     elementIndex++;
-                    paramsPerElement = 0;
+                    var paramsPerElement = 0;
                     cancellationToken.ThrowIfCancellationRequested();
                     resultBuilder.Append('(');
                     var firstPropertyValue = true;

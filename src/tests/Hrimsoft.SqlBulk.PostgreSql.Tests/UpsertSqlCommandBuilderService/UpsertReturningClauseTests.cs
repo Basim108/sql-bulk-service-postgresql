@@ -56,11 +56,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
                 .ThatIsPrivateKey();
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(x => x.RecordId);
             entityProfile.HasUniqueConstraint("business_identity");
-
+            entityProfile.HasProperty<TestEntity, string>(x => x.SensorId);
             entityProfile.HasProperty<TestEntity, int>(x => x.IntValue)
                 .MustBeUpdatedAfterInsert();
 
-            entityProfile.HasProperty<TestEntity, string>(x => x.SensorId);
             entityProfile.ToTable("test_entity", "custom");
 
             var elements = new List<TestEntity>
@@ -90,12 +89,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
                 .ThatIsPrivateKey();
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(x => x.RecordId);
             entityProfile.HasUniqueConstraint("business_identity");
-
+            entityProfile.HasProperty<TestEntity, string>(x => x.SensorId);
             entityProfile.HasProperty<TestEntity, int>(x => x.IntValue)
                 .MustBeUpdatedAfterInsert()
                 .MustBeUpdatedAfterUpdate();
 
-            entityProfile.HasProperty<TestEntity, string>(x => x.SensorId);
             entityProfile.ToTable("test_entity", "custom");
 
             var elements = new List<TestEntity>
