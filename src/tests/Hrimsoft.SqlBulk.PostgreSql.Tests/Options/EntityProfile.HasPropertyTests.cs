@@ -12,7 +12,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
         {
             var entityProfile = new EntityProfile(typeof(TestEntity));
             
-            Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>("id", x => x.Id + x.Value));
+            Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>("id", x => x.Id + x.IntValue));
             Assert.DoesNotThrow(() => entityProfile.HasProperty<TestEntity, int>("value", x => x.Id + 10));
         }
 
@@ -64,7 +64,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
         {
             var entityProfile = new EntityProfile(typeof(EntityWithNullableProperty));
             Assert.DoesNotThrow(() => entityProfile.HasProperty<EntityWithNullableProperty, bool?>
-                                    ("value", x => x.Value));
+                                    ("value", x => x.NullableBool));
         }
         
         [Test]

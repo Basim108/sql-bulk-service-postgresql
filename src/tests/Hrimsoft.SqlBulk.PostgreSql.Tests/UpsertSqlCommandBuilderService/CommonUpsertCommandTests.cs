@@ -27,11 +27,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
                 .ThatIsPrivateKey();
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.RecordId);
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.SensorId);
-            entityProfile.HasProperty<TestEntity, int>(entity => entity.Value);
+            entityProfile.HasProperty<TestEntity, int>(entity => entity.IntValue);
             
             var elements = new List<TestEntity>
             {
-                new TestEntity{ RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
+                new TestEntity{ RecordId = "rec-01", SensorId = "sens-01", IntValue = 127 },
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);
@@ -48,14 +48,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
                 .ThatIsPrivateKey();
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.RecordId);
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.SensorId);
-            entityProfile.HasProperty<TestEntity, int>(entity => entity.Value);
+            entityProfile.HasProperty<TestEntity, int>(entity => entity.IntValue);
             
             var elements = new List<TestEntity>
             {
-                new TestEntity{ RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
-                new TestEntity{ RecordId = "rec-02", SensorId = "sens-01", Value = 128 },
-                new TestEntity{ RecordId = "rec-01", SensorId = "sens-02", Value = 227 },
-                new TestEntity{ RecordId = "rec-02", SensorId = "sens-02", Value = 228 }
+                new TestEntity{ RecordId = "rec-01", SensorId = "sens-01", IntValue = 127 },
+                new TestEntity{ RecordId = "rec-02", SensorId = "sens-01", IntValue = 128 },
+                new TestEntity{ RecordId = "rec-01", SensorId = "sens-02", IntValue = 227 },
+                new TestEntity{ RecordId = "rec-02", SensorId = "sens-02", IntValue = 228 }
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);

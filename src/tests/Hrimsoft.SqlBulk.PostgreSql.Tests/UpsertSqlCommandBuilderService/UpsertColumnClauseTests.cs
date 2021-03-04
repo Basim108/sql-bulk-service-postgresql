@@ -28,7 +28,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
 
             var elements = new List<TestEntity>
             {
-                new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", Value = 127 },
+                new TestEntity{ Id=12, RecordId = "rec-01", SensorId = "sens-01", IntValue = 127 },
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);

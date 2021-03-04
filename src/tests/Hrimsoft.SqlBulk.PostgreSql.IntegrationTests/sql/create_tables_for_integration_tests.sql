@@ -58,9 +58,32 @@ create trigger after_update_tests_change_record_trigger before update on "unit_t
 --drop table "unit_tests"."simple_test_entity";
 create table "unit_tests"."simple_test_entity"
 (
-	id serial not null
-		constraint simple_test_entity_pk primary key,
-	record_id text,
-	sensor_id text,
-    value integer
+    id serial not null
+        constraint simple_test_entity_pk primary key,
+    record_id text,
+    sensor_id text,
+    value integer not null,
+    nullable_int integer
+);
+
+create table "unit_tests"."nullable_test_entity"
+(
+    id serial not null
+        constraint nullable_test_entity_pk primary key,
+    nullable_int integer,
+    nullable_short smallint,
+    nullable_decimal numeric,
+    nullable_float real,
+    nullable_double double precision,
+    nullable_bool boolean
+);
+
+create table "unit_tests"."bulk_test_entity"
+(
+    id serial not null
+        constraint bulk_test_entity_pk primary key,
+    record_id text,
+    sensor_id text,
+    value integer not null,
+    nullable_int integer
 );

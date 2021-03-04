@@ -22,7 +22,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
                 .MustBeUpdatedAfterUpdate();
             this.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(entity => entity.SensorId)
                 .MustBeUpdatedAfterInsert();
-            this.HasProperty<TestEntity, int>(entity => entity.Value)
+            this.HasProperty<TestEntity, int>(entity => entity.IntValue)
                 .MustBeUpdatedAfterUpdate();
         }
     }

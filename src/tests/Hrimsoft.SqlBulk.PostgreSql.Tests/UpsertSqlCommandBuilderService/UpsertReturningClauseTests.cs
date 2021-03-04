@@ -32,7 +32,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
 
             var elements = new List<TestEntity>
             {
-                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", Value = 127},
+                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", IntValue = 127},
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);
@@ -53,7 +53,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(x => x.RecordId);
             entityProfile.HasUniqueConstraint("business_identity");
 
-            entityProfile.HasProperty<TestEntity, int>(x => x.Value)
+            entityProfile.HasProperty<TestEntity, int>(x => x.IntValue)
                 .MustBeUpdatedAfterInsert();
 
             entityProfile.HasProperty<TestEntity, string>(x => x.SensorId);
@@ -61,7 +61,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
 
             var elements = new List<TestEntity>
             {
-                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", Value = 127},
+                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", IntValue = 127},
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);
@@ -70,7 +70,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, UpsertConsts.UPSERT_PATTERN, RegexOptions.IgnoreCase));
 
             // Check that there is a returning clause in the result command
-            var returningClausePattern = @"returning\s*""value""\s*;";
+            var returningClausePattern = @"returning\s*""int_value""\s*;";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, returningClausePattern, RegexOptions.IgnoreCase));
         }
 
@@ -83,7 +83,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
             entityProfile.HasPropertyAsPartOfUniqueConstraint<TestEntity, string>(x => x.RecordId);
             entityProfile.HasUniqueConstraint("business_identity");
 
-            entityProfile.HasProperty<TestEntity, int>(x => x.Value)
+            entityProfile.HasProperty<TestEntity, int>(x => x.IntValue)
                 .MustBeUpdatedAfterInsert()
                 .MustBeUpdatedAfterUpdate();
 
@@ -92,7 +92,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
 
             var elements = new List<TestEntity>
             {
-                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", Value = 127},
+                new TestEntity {Id = 12, RecordId = "rec-01", SensorId = "sens-01", IntValue = 127},
             };
             var commandResult = _testService.Generate(elements, entityProfile, CancellationToken.None);
             Assert.NotNull(commandResult.Command);
@@ -101,7 +101,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.UpsertSqlCommandBuilderService
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, UpsertConsts.UPSERT_PATTERN, RegexOptions.IgnoreCase));
 
             // Check that there is a returning clause in the result command
-            var returningClausePattern = @"returning\s*""value""\s*;";
+            var returningClausePattern = @"returning\s*""int_value""\s*;";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, returningClausePattern, RegexOptions.IgnoreCase));
         }
     }

@@ -1,6 +1,13 @@
 namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
 {
-    public class TestEntityWithEnum
+    public class TestEntityWithIntEnum
+    {
+        public int Id { get; set; }
+        
+        public SomeEnum SomeEnumValue { get; set; }
+    }
+    
+    public class TestEntityWithStrEnum
     {
         public int Id { get; set; }
         

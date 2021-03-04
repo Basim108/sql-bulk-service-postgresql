@@ -8,6 +8,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
         
         public string SensorId { get; set; }
         
-        public int Value { get; set; }
+        public int IntValue { get; set; }
+        public short ShortValue { get; set; }
+        public float FloatValue { get; set; }
+        public double DoubleValue { get; set; }
+        public decimal DecimalValue { get; set; }
+        public bool BoolValue { get; set; }
     }
 }

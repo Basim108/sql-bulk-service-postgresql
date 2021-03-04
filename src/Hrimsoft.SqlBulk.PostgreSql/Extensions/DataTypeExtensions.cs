@@ -41,9 +41,17 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             {
                 return NpgsqlDbType.Integer;
             }
+            if(propertyType == typeof(short) || propertyType == typeof(Nullable<short>))
+            {
+                return NpgsqlDbType.Smallint;
+            }
             if (propertyType == typeof(long) || propertyType == typeof(Nullable<long>))
             {
                 return NpgsqlDbType.Bigint;
+            }
+            if (propertyType == typeof(decimal) || propertyType == typeof(Nullable<decimal>))
+            {
+                return NpgsqlDbType.Numeric;
             }
             if (propertyType == typeof(bool) || propertyType == typeof(Nullable<bool>))
             {
@@ -79,7 +87,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             }
             if (propertyType == typeof(TimeSpan) || propertyType == typeof(Nullable<TimeSpan>))
             {
-                return NpgsqlDbType.Bigint;
+                return NpgsqlDbType.Interval;
             }
             if (propertyType.IsEnum)
             {
