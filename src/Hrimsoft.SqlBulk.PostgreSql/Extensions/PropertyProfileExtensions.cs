@@ -11,6 +11,26 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public static class PropertyProfileExtensions
     {
+        /// <summary>
+        /// Will the property value getter execute dynamic invoke or not.
+        /// </summary>
+        /// <returns>Returns True if it will use dynamic invoke, otherwise returns False.</returns>
+        public static bool IsDynamicallyInvoked(this PropertyProfile profile)
+        {
+            switch (profile.DbColumnType)
+            {
+                case NpgsqlDbType.Bigint:
+                case NpgsqlDbType.Integer:
+                case NpgsqlDbType.Real:
+                case NpgsqlDbType.Double:
+                case NpgsqlDbType.Numeric:
+                case NpgsqlDbType.Boolean:
+                case NpgsqlDbType.Smallint:
+                    return false;
+            }
+            return true;
+        }
+
         /// <summary> Calculates property values of item </summary>
         /// <param name="item">item with values</param>
         /// <param name="profile">information about which property it is needed to get value</param>
