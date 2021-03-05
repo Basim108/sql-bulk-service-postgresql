@@ -15,7 +15,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
     {
         private UpdateSqlCommandBuilder _testService;
         private const string UPDATE_PATTERN = 
-@"(update\s+(""\w+"".)?""\w+""\s+set\s+""\w+""\s*=\s*@param_\w+_\d+(,""\w+""\s*=\s*@param_\w+_\d+)*\s+where\s+""\w+""\s*=\s*@param_\w+_\d+(\s+returning\s+""\w+""\s*(,\s*""\w+"")*)?\s*;?)+";
+@"(update\s+(""\w+"".)?""\w+""\s+set\s+""\w+""\s*=\s*@param_\w+_\d+(,""\w+""\s*=\s*@param_\w+_\d+)*\s*(,""\w+""\s*=\s*\d+)*\s+where\s+""\w+""\s*=\s*\d+(\s+returning\s+""\w+""\s*(,\s*""\w+"")*)?\s*;?)*";
 
         [SetUp]
         public void SetUp()
@@ -256,11 +256,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(4, commandResult.Parameters.Count);
+            Assert.AreEqual(2, commandResult.Parameters.Count);
             Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
             Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 12));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 10));
+            Assert.AreEqual(0, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
         }
         
         [Test]
@@ -278,9 +277,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(4, commandResult.Parameters.Count);
+            Assert.AreEqual(2, commandResult.Parameters.Count);
             Assert.AreEqual(2, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Text).ToList().Count);
-            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
+            Assert.AreEqual(0, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
         }
         
         [Test]
@@ -355,7 +354,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             
             // pattern should match "id" whatever builder put the "id" column in any order where "id" = @param1;  or where ""value"=@param1, "id"=@param2;
-            var pattern = "where\\s+(\"id\"\\s*=\\s*@param_\\w+_\\d+|\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)\\s*(,\\s*\"id\"\\s*=\\s*@param_\\w+_\\d+|,\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)";
+            var pattern = "where\\s+(\"id\"\\s*=\\s*\\d+|\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)\\s*(,\\s*\"id\"\\s*=\\s*\\d+|,\\s*\"record_id\"\\s*=\\s*@param_\\w+_\\d+)";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
         }
     }
