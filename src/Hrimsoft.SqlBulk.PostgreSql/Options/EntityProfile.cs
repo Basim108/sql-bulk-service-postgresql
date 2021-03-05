@@ -93,7 +93,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         }
 
         /// <summary>
-        /// Collection of properties 
+        /// Collection of properties. key is property name, value is property profile.
         /// </summary>
         public IDictionary<string, PropertyProfile> Properties { get; }
 

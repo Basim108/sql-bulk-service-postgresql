@@ -1,21 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
-using NpgsqlTypes;
 using NUnit.Framework;
 
-namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
+namespace Hrimsoft.SqlBulk.PostgreSql.Tests
 {
     public class SimpleDeleteSqlCommandBuilderTests
     {
         private SimpleDeleteSqlCommandBuilder _testService;
         private const string DELETE_PATTERN = 
-@"(delete\s+from\s+(""\w+"".)?""\w+""\s+where\s+""\w+""\s*=\s*@param_\w+_\d+\s*(,\s*""\w+""\s*=\s*@param_\w+_\d+)*\s*;)+";
+@"(delete\s+from\s+(""\w+"".)?""\w+""\s+where\s+""\w+""\s*=\s*(@param_\w+_\d+|\d+)\s*(,\s*""\w+""\s*=\s*(@param_\w+_\d+|\d+))*\s*;)+";
 
         [SetUp]
         public void SetUp()
@@ -98,7 +96,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
         }
         
         [Test]
-        public void Should_match_update_cmd_of_many_elements()
+        public void Should_match_delete_cmd_of_many_elements()
         {
             var entityProfile = new ReturningEntityProfile();
             var elements = new List<TestEntity>
@@ -136,7 +134,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             
             // pattern should match "id" whatever builder put the "id" column in any order where "id" = @param1;  or where ""value"=@param1, "id"=@param2;
-            var pattern = "where\\s+(\"id\"\\s*=\\s*@param_id_\\d+|\\s*\"record_id\"\\s*=\\s*@param_record_id_\\d+)\\s*(,\\s*\"id\"\\s*=\\s*@param_id_\\d+|,\\s*\"record_id\"\\s*=\\s*@param_record_id_\\d+)";
+            var pattern = "where\\s+(\"id\"\\s*=\\s*\\d+|\\s*\"record_id\"\\s*=\\s*@param_record_id_\\d+)\\s*(and\\s*\"id\"\\s*=\\s*\\d+|\\s+and\\s*\"record_id\"\\s*=\\s*@param_record_id_\\d+)";
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, pattern, RegexOptions.IgnoreCase));
         }
         
@@ -155,8 +153,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(1, commandResult.Parameters.Count);
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 10));
+            Assert.AreEqual(0, commandResult.Parameters.Count);
         }
         
         [Test]
@@ -180,9 +177,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Services
             Assert.NotNull(commandResult.Command);
             Assert.NotNull(commandResult.Parameters);
             
-            Assert.AreEqual(2, commandResult.Parameters.Count);
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 10));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.NpgsqlDbType == NpgsqlDbType.Integer && (int)p.Value == 12));
+            Assert.AreEqual(0, commandResult.Parameters.Count);
         }
         
         [Test]

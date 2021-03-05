@@ -141,13 +141,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 {
                     if (!propInfo.IsPrivateKey)
                         continue;
-                    var whereDelimiter = firstWhereExpression ? "" : ",";
-                    commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
-                    parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
-                                   {
-                                       Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
-                                       IsNullable = propInfo.IsNullable
-                                   });
+                    var whereDelimiter = firstWhereExpression ? "" : " and ";
+                    var propValue      = propInfo.GetPropertyValueAsString(item);
+                    if (propValue == null)
+                    {
+                        commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
+                        parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
+                                       {
+                                           Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
+                                           IsNullable = propInfo.IsNullable
+                                       });
+                    }
+                    else
+                    {
+                        commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={propValue}");
+                    }
                     firstWhereExpression = false;
                 }
                 catch (Exception ex)
