@@ -90,6 +90,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                            Parameters             = parameters,
                                            IsThereReturningClause = false
                                        });
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                var (cmdSize, suffix) = ((long)commandBuilder.Length * 2).PrettifySize();
+                                _logger.LogInformation($"Generated sql simple delete command for {elementIndex} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                            }
                             commandBuilder.Clear();
                             parameters.Clear();
                         }

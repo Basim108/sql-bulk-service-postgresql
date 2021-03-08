@@ -338,20 +338,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (sw != null)
             {
                 sw.Stop();
-                var cmdSize = (float)generatedCommands.Max(x => x.Command.Length) * 2;
-                var suffix  = "bytes";
-                if (cmdSize > 1024)
-                {
-                    cmdSize = cmdSize / 1024;
-                    suffix  = "Kb";
-                }
-                if (cmdSize > 1024)
-                {
-                    cmdSize = cmdSize / 1024;
-                    suffix  = "Mb";
-                }
                 _logger.LogInformation(
-                    $"Generated {generatedCommands.Count} sql {operation.ToString().ToLowerInvariant()} commands for {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} ms, max command size {cmdSize:F2} {suffix}");
+                    $"Generated {generatedCommands.Count} sql {operation.ToString().ToLowerInvariant()} commands for {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} seconds");
                 sw = Stopwatch.StartNew();
             }
             foreach (var commandResult in generatedCommands)

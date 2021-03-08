@@ -54,6 +54,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// </summary>
         public LambdaExpression PropertyExpression { get; }
 
+        private Delegate _compiledPropertyExpression = null;
+        /// <summary>
+        /// Compiled expression to access a property 
+        /// </summary>
+        public Delegate PropertyExpressionCompiled => _compiledPropertyExpression 
+                                                   ?? (_compiledPropertyExpression = this.PropertyExpression.Compile());
+
         /// <summary>
         /// Column name in database table 
         /// </summary>

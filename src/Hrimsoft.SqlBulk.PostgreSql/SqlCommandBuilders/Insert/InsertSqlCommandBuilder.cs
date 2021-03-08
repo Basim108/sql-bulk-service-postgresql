@@ -129,6 +129,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                           };
                         if (_logger.IsEnabled(LogLevel.Debug))
                             _logger.LogDebug($"result command: {fullCommand}");
+                        if (_logger.IsEnabled(LogLevel.Information))
+                        {
+                            var (cmdSize, suffix) = ((long)resultBuilder.Length * 2).PrettifySize();
+                            _logger.LogInformation($"Generated sql insert command for {elementIndex} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                        }
                         result.Add(fullCommand);
 
                         var remainingParams = (elements.Count - elementIndex - 1) * paramsPerElement;
@@ -191,7 +196,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var returningDelimiter = firstReturningColumn
                         ? ""
                         : ", ";
-
                     returningClause      += $"{returningDelimiter}\"{propInfo.DbColumnName}\"";
                     firstReturningColumn =  false;
                 }
@@ -202,9 +206,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 var delimiter = firstColumn
                     ? ""
                     : ", ";
-                columns += $"{delimiter}\"{propInfo.DbColumnName}\"";
-
-                firstColumn = false;
+                columns     += $"{delimiter}\"{propInfo.DbColumnName}\"";
+                firstColumn =  false;
             }
 
             if (_logger.IsEnabled(LogLevel.Debug))
