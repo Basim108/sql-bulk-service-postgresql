@@ -170,8 +170,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.NotNull(result);
             var commandResult = result.FirstOrDefault();
             Assert.NotNull(commandResult);
-            Assert.NotNull(commandResult.Parameters);
-            Assert.AreEqual(2, commandResult.Parameters.Count);
+            Assert.NotNull(commandResult.SqlParameters);
+            Assert.AreEqual(2, commandResult.SqlParameters.Count);
             
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, DELETE_PARAM_PATTERN, RegexOptions.IgnoreCase));
         }
@@ -189,8 +189,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
-            Assert.IsEmpty(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
+            Assert.IsEmpty(commandResult.SqlParameters);
         }
 
         [Test]

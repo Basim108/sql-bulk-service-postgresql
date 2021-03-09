@@ -30,7 +30,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql delete command and collection of database parameters</returns>
-        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
+        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements,
+                                                                EntityProfile        entityProfile,
                                                                 CancellationToken    cancellationToken)
             where TEntity : class
         {
@@ -56,8 +57,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             _logger.LogTrace($"Generating delete sql for {elements.Count} elements.");
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
+            if (_logger.IsEnabled(LogLevel.Debug)) {
                 _logger.LogDebug($"{nameof(TEntity)}: {typeof(TEntity).FullName}");
                 _logger.LogDebug($"{nameof(elements)}.Count: {elements.Count}");
             }
@@ -68,85 +68,80 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             var result     = new List<SqlCommandBuilderResult>();
             var cmdBuilder = new StringBuilder();
-            var parameters = privateKeys[0].IsDynamicallyInvoked()
+            var sqlParameters = privateKeys[0].IsDynamicallyInvoked()
                 ? new List<NpgsqlParameter>(Math.Min(elements.Count, MAX_PARAMS_PER_CMD))
                 : null;
             cmdBuilder.Append(commandHeader);
 
             var elementAbsIndex = -1;
             var elementIndex    = -1;
-            using (var elementsEnumerator = elements.GetEnumerator())
-            {
-                while (elementsEnumerator.MoveNext())
-                {
+            using (var elementsEnumerator = elements.GetEnumerator()) {
+                while (elementsEnumerator.MoveNext()) {
                     elementAbsIndex++;
                     if (elementsEnumerator.Current == null)
                         continue;
-                    try
-                    {
+                    try {
                         elementIndex++;
                         var whereDelimiter = elementIndex == 0 ? "" : ",";
-                        if (parameters != null && parameters.Count + 1 > MAX_PARAMS_PER_CMD)
-                        {
+                        if (sqlParameters != null && sqlParameters.Count + 1 > MAX_PARAMS_PER_CMD) {
                             cmdBuilder.AppendLine(");");
                             result.Add(new SqlCommandBuilderResult
-                                       {
-                                           Command                = cmdBuilder.ToString(),
-                                           Parameters             = parameters,
-                                           IsThereReturningClause = false
-                                       });
-                            if (_logger.IsEnabled(LogLevel.Information))
-                            {
-                                var (cmdSize, suffix) = ((long)cmdBuilder.Length * 2).PrettifySize();
-                                _logger.LogInformation($"Generated sql where-in-delete command for {elementIndex} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                                       (
+                                           cmdBuilder.ToString(),
+                                           sqlParameters,
+                                           isThereReturningClause: false,
+                                           elementsCount: elementIndex
+                                       ));
+                            if (_logger.IsEnabled(LogLevel.Information)) {
+                                var (cmdSize, suffix) = ((long) cmdBuilder.Length * 2).PrettifySize();
+                                _logger.LogInformation(
+                                    $"Generated sql where-in-delete command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
                             }
+                            sqlParameters = new List<NpgsqlParameter>(sqlParameters.Count);
                             cmdBuilder.Clear();
                             cmdBuilder.Append(commandHeader);
-                            parameters.Clear();
                             whereDelimiter = "";
+                            elementIndex   = 0;
                         }
-                        else if (elementIndex == MAX_IN_CLAUSE_IDS + 1)
-                        {
+                        else if (elementIndex == MAX_IN_CLAUSE_IDS + 1) {
                             cmdBuilder.AppendLine(");");
                             cmdBuilder.Append(commandHeader);
                             whereDelimiter = "";
                         }
                         var propValue = privateKeys[0].GetPropertyValueAsString(elementsEnumerator.Current);
-                        if (parameters != null)
-                        {
+                        if (sqlParameters != null) {
                             var paramName = $"@param_{privateKeys[0].DbColumnName}_{elementIndex}";
                             cmdBuilder.Append($"{whereDelimiter}{paramName}");
                             var value = privateKeys[0].GetPropertyValue(elementsEnumerator.Current);
                             if (value == null)
                                 throw new ArgumentException($"Private key must not be null. property: {privateKeys[0].DbColumnName}, item index: {elementAbsIndex}",
                                                             nameof(elements));
-                            parameters.Add(new NpgsqlParameter(paramName, privateKeys[0].DbColumnType)
-                                           {
-                                               Value = value
-                                           });
+                            sqlParameters.Add(new NpgsqlParameter(paramName, privateKeys[0].DbColumnType)
+                                              {
+                                                  Value = value
+                                              });
                         }
-                        else
-                        {
+                        else {
                             cmdBuilder.Append($"{whereDelimiter}{propValue}");
                         }
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         var message = $"an error occurred while calculating {privateKeys[0].DbColumnName} of item at index {elementAbsIndex}";
                         throw new SqlGenerationException(SqlOperation.Delete, message, ex);
                     }
                 }
             }
-            if (elementIndex == -1)
+            if (elementIndex == -1 && result.Count == 0)
                 throw new ArgumentException($"There is no elements in the collection. At least one element must be.", nameof(elements));
-            
+
             cmdBuilder.AppendLine(");");
             result.Add(new SqlCommandBuilderResult
-                       {
-                           Command                = cmdBuilder.ToString(),
-                           Parameters             = parameters ?? new List<NpgsqlParameter>(),
-                           IsThereReturningClause = false
-                       });
+                       (
+                           cmdBuilder.ToString(),
+                           sqlParameters ?? new List<NpgsqlParameter>(),
+                           isThereReturningClause: false,
+                           elementsCount: elementIndex + 1
+                       ));
             return result;
         }
     }

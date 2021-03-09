@@ -253,12 +253,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
             
-            Assert.AreEqual(2, commandResult.Parameters.Count);
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
-            Assert.AreEqual(0, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
+            Assert.AreEqual(2, commandResult.SqlParameters.Count);
+            Assert.NotNull(commandResult.SqlParameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
+            Assert.NotNull(commandResult.SqlParameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
+            Assert.AreEqual(0, commandResult.SqlParameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
         }
         
         [Test]
@@ -274,11 +274,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
             
-            Assert.AreEqual(2, commandResult.Parameters.Count);
-            Assert.AreEqual(2, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Text).ToList().Count);
-            Assert.AreEqual(0, commandResult.Parameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
+            Assert.AreEqual(2, commandResult.SqlParameters.Count);
+            Assert.AreEqual(2, commandResult.SqlParameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Text).ToList().Count);
+            Assert.AreEqual(0, commandResult.SqlParameters.Where(p => p.NpgsqlDbType == NpgsqlDbType.Integer).ToList().Count);
         }
         
         [Test]

@@ -176,11 +176,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
 
-            Assert.AreEqual(2, commandResult.Parameters.Count);
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
-            Assert.NotNull(commandResult.Parameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
+            Assert.AreEqual(2, commandResult.SqlParameters.Count);
+            Assert.NotNull(commandResult.SqlParameters.FirstOrDefault(p => p.Value.ToString() == "rec-01"));
+            Assert.NotNull(commandResult.SqlParameters.FirstOrDefault(p => p.Value.ToString() == "sens-02"));
         }
 
         [Test]
@@ -196,10 +196,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
 
-            Assert.AreEqual(2, commandResult.Parameters.Count);
-            Assert.IsTrue(commandResult.Parameters.All(p => p.NpgsqlDbType == NpgsqlDbType.Text));
+            Assert.AreEqual(2, commandResult.SqlParameters.Count);
+            Assert.IsTrue(commandResult.SqlParameters.All(p => p.NpgsqlDbType == NpgsqlDbType.Text));
         }
 
         [Test]

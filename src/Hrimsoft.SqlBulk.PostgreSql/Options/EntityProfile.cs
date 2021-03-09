@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using Hrimsoft.StringCases;
-using JetBrains.Annotations;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
 {
@@ -12,13 +11,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class EntityProfile
     {
-        /// <inheritdoc />
+        /// <summary> </summary>
         public EntityProfile(Type entityType)
         {
-            if (entityType == null)
-                throw new ArgumentNullException(nameof(entityType));
-
-            this.EntityType = entityType;
+            this.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
             this.Properties = new Dictionary<string, PropertyProfile>();
         }
 
@@ -34,6 +30,27 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// If 0 then unlimited. If n then all elements will be split into n-sized arrays and will be send one after another.  
         /// </summary>
         public int? MaximumSentElements { get; protected set; }
+
+        private int _maxPossibleParams = -1;
+
+        /// <summary>
+        /// The maximum number of possible sql-parameters per element.
+        /// Most of primitive types will set into the command,
+        /// while other types such as String, DateTime, DateTimeOffset are passed into the command through sql-parameters.  
+        /// However, null values are also passed through sql-command without sql-parameter.
+        /// </summary>
+        public int MaxPossibleSqlParameters
+        {
+            get
+            {
+                if (_maxPossibleParams < 0)
+                {
+                    _maxPossibleParams = Properties.Values
+                                                   .Count(propInfo => propInfo.IsDynamicallyInvoked());
+                }
+                return _maxPossibleParams;
+            }
+        }
 
         #endregion
 
@@ -53,6 +70,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// It will override the option defined in the <see cref="BulkServiceOptions"/>
         /// Default: false
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public bool? IsNotOperatedElementsEnabled { get; set; }
 
         /// <summary>
@@ -61,6 +79,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// It will override the option defined in the <see cref="BulkServiceOptions"/>
         /// Default: false 
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public bool? IsOperatedElementsEnabled { get; set; }
 
         /// <summary>
@@ -69,6 +88,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// It will override the option defined in the <see cref="BulkServiceOptions"/>
         /// Default: false
         /// </summary>
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public bool? IsProblemElementsEnabled { get; set; }
 
         #endregion

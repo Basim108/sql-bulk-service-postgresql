@@ -61,7 +61,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
         }
         
         [Test]
-        public void Should_match_delete_cmd_for_entities_with_returning_clause()
+        public void Should_match_delete_cmd_for_entities()
         {
             var entityProfile = new ReturningEntityProfile();
             var elements = new List<TestEntity>
@@ -76,6 +76,23 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.NotNull(commandResult.Command);
 
             Assert.IsTrue(Regex.IsMatch(commandResult.Command, DELETE_PATTERN, RegexOptions.IgnoreCase));
+        }
+        
+        [Test]
+        public void Should_match_delete_cmd_for_more_than_65K_entities()
+        {
+            var entityProfile = new ReturningEntityProfile();
+            var elements      = new List<TestEntity>();
+            for (var i = 0; i < 70_000; i++)
+            {
+                elements.Add(new TestEntity{ Id =12, RecordId = $"rec-{i}", SensorId = $"sens-{i}", IntValue = 127 });
+            }
+            var commands = _testService.Generate(elements, entityProfile, CancellationToken.None);
+            Assert.NotNull(commands);
+            Assert.AreEqual(1, commands.Count);
+            
+            Assert.NotNull(commands[0].Command);
+            Assert.IsTrue(Regex.IsMatch(commands[0].Command, DELETE_PATTERN, RegexOptions.IgnoreCase));
         }
         
         [Test]
@@ -151,9 +168,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             Assert.AreEqual(1, commands.Count);
             var commandResult = commands.First();
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
             
-            Assert.AreEqual(0, commandResult.Parameters.Count);
+            Assert.AreEqual(0, commandResult.SqlParameters.Count);
         }
         
         [Test]
@@ -175,9 +192,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests
             var commandResult = commands.First();
             
             Assert.NotNull(commandResult.Command);
-            Assert.NotNull(commandResult.Parameters);
+            Assert.NotNull(commandResult.SqlParameters);
             
-            Assert.AreEqual(0, commandResult.Parameters.Count);
+            Assert.AreEqual(0, commandResult.SqlParameters.Count);
         }
         
         [Test]

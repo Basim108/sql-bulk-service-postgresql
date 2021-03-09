@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,16 +137,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             var (needOperatedElements, needNotOperatedElements, needProblemElements) = GetExtendedFailureInformation(entityProfile);
             NpgsqlTransaction transaction = null;
-            if (currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
-            {
+            if (currentFailureStrategy == FailureStrategies.StopEverythingAndRollback) {
                 if (connection.State != ConnectionState.Open)
                     await connection.OpenAsync(cancellationToken);
                 transaction = connection.BeginTransaction();
             }
-            if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent)
-            {
-                try
-                {
+            if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent) {
+                try {
                     await ExecutePortionAsync(operation,
                                               connection,
                                               elements,
@@ -155,8 +153,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         await transaction.CommitAsync(cancellationToken);
                     result?.Operated.AddRange(elements);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     var notOperatedElements = needNotOperatedElements ? elements : null;
                     var operatedElements    = needOperatedElements ? new List<TEntity>() : null;
                     var problemElements     = needProblemElements ? elements : null;
@@ -172,8 +169,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     result?.NotOperated.AddRange(elements);
                 }
             }
-            else
-            {
+            else {
                 Stopwatch sw = null;
                 if (_logger.IsEnabled(LogLevel.Information))
                     sw = Stopwatch.StartNew();
@@ -184,13 +180,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
                 var iterations = Math.Round((decimal) elements.Count / maximumEntitiesPerSent,
                                             MidpointRounding.AwayFromZero);
-                for (var i = 0; i < iterations; i++)
-                {
+                for (var i = 0; i < iterations; i++) {
                     var portion = elements.Skip(i * maximumEntitiesPerSent)
                                           .Take(maximumEntitiesPerSent)
                                           .ToList();
-                    try
-                    {
+                    try {
                         await ExecutePortionAsync(operation,
                                                   connection,
                                                   portion,
@@ -199,15 +193,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         operated?.AddRange(portion);
                         result?.Operated.AddRange(portion);
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         if (currentFailureStrategy != FailureStrategies.IgnoreFailure)
                             problem?.AddRange(portion);
 
                         result?.NotOperated.AddRange(portion);
 
-                        switch (currentFailureStrategy)
-                        {
+                        switch (currentFailureStrategy) {
                             // Ignore strategy is ignored here because it does not throw an SqlBulkExecutionException
                             case FailureStrategies.StopEverything:
                             {
@@ -233,9 +225,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                                   cancellationToken);
                     }
                 }
-                if (sw != null)
-                {
-                    _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps in total {sw.ElapsedMilliseconds / 1000f:F3} seconds");
+                if (sw != null) {
+                    _logger.LogInformation(
+                        $"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps in total {sw.ElapsedMilliseconds / 1000f:F3} seconds");
                 }
             }
             return result;
@@ -244,8 +236,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         private ISqlCommandBuilder GetCommandBuilder(SqlOperation operation)
         {
             ISqlCommandBuilder result = null;
-            switch (operation)
-            {
+            switch (operation) {
                 case SqlOperation.Insert:
                     result = _insertCommandBuilder;
                     break;
@@ -294,8 +285,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 await transaction.RollbackAsync(cancellationToken);
 
             if (currentFailureStrategy == FailureStrategies.StopEverything ||
-                currentFailureStrategy == FailureStrategies.StopEverythingAndRollback)
-            {
+                currentFailureStrategy == FailureStrategies.StopEverythingAndRollback) {
                 throw new SqlBulkExecutionException<TEntity>(ex, operation, currentFailureStrategy, problemElements, notOperatedElements, operatedElements);
             }
         }
@@ -335,40 +325,43 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var commandBuilder = GetCommandBuilder(operation);
 
             var generatedCommands = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            if (sw != null)
-            {
+            if (sw != null) {
                 sw.Stop();
                 _logger.LogInformation(
                     $"Generated {generatedCommands.Count} sql {operation.ToString().ToLowerInvariant()} commands for {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} seconds");
                 sw = Stopwatch.StartNew();
             }
-            foreach (var commandResult in generatedCommands)
-            {
-                using (var command = new NpgsqlCommand(commandResult.Command, connection))
-                {
-                    foreach (var param in commandResult.Parameters)
-                        command.Parameters.Add(param);
-                    using (var reader = await command.ExecuteReaderAsync(cancellationToken))
-                    using (var elementsEnumerator = elements.GetEnumerator())
-                    {
-                        while (await reader.ReadAsync(cancellationToken))
-                        {
-                            if (!elementsEnumerator.MoveNext())
-                            {
-                                var message =
-                                    $"There is no more items in the elements collection, but reader still has tuples to read.elements.{nameof(elements.Count)}: {elements.Count}";
-                                _logger.LogError(message);
-                                throw new SqlBulkExecutionException<TEntity>(message);
+#if DEBUG
+            var commandIdx = -1;
+#endif
+            // starting enumerate elements in order to update/set auto generated properties
+            using (var elementsEnumerator = elements.GetEnumerator()) {
+                foreach (var commandResult in generatedCommands) {
+                    using (var command = new NpgsqlCommand(commandResult.Command, connection)) {
+#if DEBUG
+                        commandIdx++;
+                        Directory.CreateDirectory("/tmp/hrimsoft");
+                        File.WriteAllText($"/tmp/hrimsoft/{operation}-bulk-{commandIdx}.sql", commandResult.Command);
+#endif
+                        foreach (var param in commandResult.SqlParameters)
+                            command.Parameters.Add(param);
+                        using (var reader = await command.ExecuteReaderAsync(cancellationToken)) {
+                            while (await reader.ReadAsync(cancellationToken)) {
+                                if (!elementsEnumerator.MoveNext()) {
+                                    var message =
+                                        $"There is no more items in the elements collection, but reader still has tuples to read.elements.{nameof(elements.Count)}: {elements.Count}";
+                                    _logger.LogError(message);
+                                    throw new SqlBulkExecutionException<TEntity>(message);
+                                }
+                                if (commandResult.IsThereReturningClause)
+                                    UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, operation, cancellationToken);
                             }
-                            if (commandResult.IsThereReturningClause)
-                                UpdatePropertiesAfterCommandExecution(reader, elementsEnumerator.Current, entityProfile.Properties, operation, cancellationToken);
+                            await reader.CloseAsync();
                         }
-                        await reader.CloseAsync();
                     }
                 }
             }
-            if (sw != null)
-            {
+            if (sw != null) {
                 _logger.LogInformation($"{operation}ed a portion of {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} seconds");
             }
         }
@@ -401,14 +394,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             CancellationToken                    cancellationToken)
             where TEntity : class
         {
-            foreach (var propInfoPair in propertyProfiles)
-            {
+            foreach (var propInfoPair in propertyProfiles) {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (operation == SqlOperation.Insert && propInfoPair.Value.IsUpdatedAfterInsert ||
                     operation == SqlOperation.Update && propInfoPair.Value.IsUpdatedAfterUpdate ||
-                    operation == SqlOperation.Upsert && (propInfoPair.Value.IsUpdatedAfterInsert || propInfoPair.Value.IsUpdatedAfterUpdate))
-                {
+                    operation == SqlOperation.Upsert && (propInfoPair.Value.IsUpdatedAfterInsert || propInfoPair.Value.IsUpdatedAfterUpdate)) {
                     var value = reader[propInfoPair.Key];
                     propInfoPair.Value.SetPropertyValue(item, value);
                 }

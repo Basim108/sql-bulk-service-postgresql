@@ -8,19 +8,32 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class SqlCommandBuilderResult
     {
+        public SqlCommandBuilderResult(string                       command,
+                                       ICollection<NpgsqlParameter> sqlParameters,
+                                       bool                         isThereReturningClause,
+                                       int                          elementsCount)
+        {
+            Command                = command;
+            SqlParameters          = sqlParameters;
+            IsThereReturningClause = isThereReturningClause;
+            ElementsCount          = elementsCount;
+        }
+
         /// <summary>
         /// Text of generated sql command
         /// </summary>
-        public string Command { get; set; }
-        
+        public string Command { get; }
+
         /// <summary>
         /// Parameters that were included into the command
         /// </summary>
-        public ICollection<NpgsqlParameter> Parameters { get; set; }
-        
+        public ICollection<NpgsqlParameter> SqlParameters { get; }
+
         /// <summary>
         /// Does the sql command contains a returning clause
         /// </summary>
-        public bool IsThereReturningClause { get; set; }
+        public bool IsThereReturningClause { get; }
+
+        public int ElementsCount { get; }
     }
 }

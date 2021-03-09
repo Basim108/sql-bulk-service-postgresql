@@ -29,7 +29,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile">elements type profile (contains mapping and other options)</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Returns a text of an sql update command and collection of database parameters</returns>
-        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements, EntityProfile entityProfile,
+        public IList<SqlCommandBuilderResult> Generate<TEntity>(ICollection<TEntity> elements,
+                                                                EntityProfile        entityProfile,
                                                                 CancellationToken    cancellationToken)
             where TEntity : class
         {
@@ -45,8 +46,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             var resultCommand = "";
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
+            if (_logger.IsEnabled(LogLevel.Debug)) {
                 _logger.LogDebug($"{nameof(TEntity)}: {typeof(TEntity).FullName}");
                 _logger.LogDebug($"{nameof(elements)}.Count: {elements.Count}");
             }
@@ -54,29 +54,27 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             cancellationToken.ThrowIfCancellationRequested();
             const int MAX_PARAMS_PER_CMD = 65_535;
 
-            var paramsCount       = elements.Count * entityProfile.Properties.Count;
-            var commandParameters = new List<NpgsqlParameter>(Math.Min(paramsCount, MAX_PARAMS_PER_CMD));
-            var result            = new List<SqlCommandBuilderResult>();
+            var paramsCount   = elements.Count * entityProfile.MaxPossibleSqlParameters;
+            var sqlParameters = new List<NpgsqlParameter>(Math.Min(paramsCount, MAX_PARAMS_PER_CMD));
+            var result        = new List<SqlCommandBuilderResult>();
 
             var isThereReturningClause = false;
             var allElementsAreNull     = true;
-            using (var elementsEnumerator = elements.GetEnumerator())
-            {
+            var elementIndex           = -1;
+            using (var elementsEnumerator = elements.GetEnumerator()) {
                 var thereIsMoreElements = true;
                 // I'd like to build the first update command, so I can estimate an approximate size of all commands
                 // ignore all null items until find the first not null item
-                while (elementsEnumerator.Current == null && thereIsMoreElements)
-                {
+                while (elementsEnumerator.Current == null && thereIsMoreElements) {
                     thereIsMoreElements = elementsEnumerator.MoveNext();
                 }
-                if (thereIsMoreElements)
-                {
+                if (thereIsMoreElements) {
                     allElementsAreNull = false;
 
                     var (commandForOneItem, itemParameters, hasReturningClause)
                         = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
                     isThereReturningClause = hasReturningClause;
-                    commandParameters.AddRange(itemParameters);
+                    sqlParameters.AddRange(itemParameters);
 
                     var maxElementsInCmd = (int) Math.Ceiling(MAX_PARAMS_PER_CMD / (double) itemParameters.Count);
                     var entireCommandLength = elements.Count * itemParameters.Count <= MAX_PARAMS_PER_CMD
@@ -86,39 +84,34 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (_logger.IsEnabled(LogLevel.Debug))
                         _logger.LogDebug($"entire command length: {entireCommandLength}");
 
-                    var resultBuilder = new StringBuilder(entireCommandLength);
-                    resultBuilder.AppendLine(commandForOneItem);
-                    var paramsPerElement = itemParameters.Count;
-                    var elementIndex     = 0;
-                    while (elementsEnumerator.MoveNext())
-                    {
+                    var commandBuilder = new StringBuilder(entireCommandLength);
+                    commandBuilder.AppendLine(commandForOneItem);
+                    while (elementsEnumerator.MoveNext()) {
                         // ignore all null items 
                         if (elementsEnumerator.Current == null)
                             continue;
-                        if (commandParameters.Count + paramsPerElement > MAX_PARAMS_PER_CMD)
-                        {
-                            result.Add(new SqlCommandBuilderResult
-                                       {
-                                           Command                = resultBuilder.ToString(),
-                                           Parameters             = commandParameters,
-                                           IsThereReturningClause = isThereReturningClause
-                                       });
-                            if (_logger.IsEnabled(LogLevel.Information))
-                            {
-                                var (cmdSize, suffix) = ((long)resultBuilder.Length * 2).PrettifySize();
-                                _logger.LogInformation($"Generated sql update command for {elementIndex} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
-                            }
-                            resultBuilder.Clear();
-                            var remainingParams = (elements.Count - elementIndex - 1) * paramsPerElement;
-                            commandParameters = new List<NpgsqlParameter>(Math.Min(remainingParams, MAX_PARAMS_PER_CMD));
-                        }
                         elementIndex++;
+                        if (sqlParameters.Count + entityProfile.MaxPossibleSqlParameters > MAX_PARAMS_PER_CMD) {
+                            result.Add(new SqlCommandBuilderResult(
+                                           commandBuilder.ToString(),
+                                           sqlParameters,
+                                           isThereReturningClause,
+                                           elementsCount: elementIndex
+                                       ));
+                            if (_logger.IsEnabled(LogLevel.Information)) {
+                                var (cmdSize, suffix) = ((long) commandBuilder.Length * 2).PrettifySize();
+                                _logger.LogInformation($"Generated sql update command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                            }
+                            commandBuilder.Clear();
+                            sqlParameters = new List<NpgsqlParameter>(sqlParameters.Count);
+                            elementIndex  = 0;
+                        }
                         (commandForOneItem, itemParameters, _)
-                            = GenerateForItem(entityProfile, elementsEnumerator.Current, resultBuilder, elementIndex);
-                        commandParameters.AddRange(itemParameters);
-                        resultBuilder.AppendLine(commandForOneItem);
+                            = GenerateForItem(entityProfile, elementsEnumerator.Current, commandBuilder, elementIndex);
+                        sqlParameters.AddRange(itemParameters);
+                        commandBuilder.AppendLine(commandForOneItem);
                     }
-                    resultCommand = resultBuilder.ToString();
+                    resultCommand = commandBuilder.ToString();
                     if (_logger.IsEnabled(LogLevel.Debug))
                         _logger.LogDebug($"result command: {resultCommand}");
                 }
@@ -126,12 +119,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (allElementsAreNull)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
-            result.Add(new SqlCommandBuilderResult
-                       {
-                           Command                = resultCommand,
-                           Parameters             = commandParameters,
-                           IsThereReturningClause = isThereReturningClause
-                       });
+            result.Add(new SqlCommandBuilderResult(
+                           command: resultCommand,
+                           sqlParameters,
+                           isThereReturningClause,
+                           elementsCount: elementIndex + 1
+                       ));
             return result;
         }
 
@@ -143,8 +136,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="externalBuilder">Builder to which the generated for an item command will be appended</param>
         /// <param name="elementIndex">As this method is called for each item, this value will be added to the sql parameter name</param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause) GenerateForItem<TEntity>(
-            EntityProfile entityProfile, TEntity item, StringBuilder externalBuilder, int elementIndex)
+        public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause)
+            GenerateForItem<TEntity>(EntityProfile entityProfile,
+                                     TEntity       item,
+                                     StringBuilder externalBuilder,
+                                     int           elementIndex)
             where TEntity : class
         {
             if (item == null)
@@ -162,17 +158,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var firstWhereExpression = true;
             var firstReturningColumn = true;
 
-            foreach (var propInfo in entityProfile.Properties.Values)
-            {
+            foreach (var propInfo in entityProfile.Properties.Values) {
                 var paramName = $"@param_{propInfo.DbColumnName}_{elementIndex}";
-                try
-                {
-                    if (propInfo.IsPrivateKey)
-                    {
+                try {
+                    if (propInfo.IsPrivateKey) {
                         var whereDelimiter = firstWhereExpression ? "" : ",";
-                        var keyValue      = propInfo.GetPropertyValueAsString(item);
-                        if (keyValue == null)
-                        {
+                        var keyValue       = propInfo.GetPropertyValueAsString(item);
+                        if (keyValue == null) {
                             whereClause += $"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}";
                             parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                                            {
@@ -180,14 +172,12 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                                IsNullable = propInfo.IsNullable
                                            });
                         }
-                        else
-                        {
+                        else {
                             whereClause += $"{whereDelimiter}\"{propInfo.DbColumnName}\"={keyValue}";
                         }
                         firstWhereExpression = false;
                     }
-                    if (propInfo.IsUpdatedAfterUpdate)
-                    {
+                    if (propInfo.IsUpdatedAfterUpdate) {
                         var returningDelimiter = firstReturningColumn ? "" : ", ";
                         returningClause      += $"{returningDelimiter}\"{propInfo.DbColumnName}\"";
                         firstReturningColumn =  false;
@@ -196,28 +186,30 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         continue;
                     var setClauseDelimiter = firstSetExpression ? "" : ",";
                     var propValue          = propInfo.GetPropertyValueAsString(item);
-                    if (propValue == null)
-                    {
-                        commandBuilder.Append($"{setClauseDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
-                        parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
-                                       {
-                                           Value      = propInfo.GetPropertyValue(item) ?? DBNull.Value,
-                                           IsNullable = propInfo.IsNullable
-                                       });
+                    if (propValue == null) {
+                        commandBuilder.Append($"{setClauseDelimiter}\"{propInfo.DbColumnName}\"=");
+                        var value = propInfo.GetPropertyValue(item);
+                        if (value == null) {
+                            commandBuilder.Append("null");
+                        }
+                        else {
+                            commandBuilder.Append(paramName);
+                            parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
+                                           {
+                                               Value = value
+                                           });
+                        }
                     }
-                    else
-                    {
+                    else {
                         commandBuilder.Append($"{setClauseDelimiter}\"{propInfo.DbColumnName}\"={propValue}");
                     }
                     firstSetExpression = false;
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     var message = $"an error occurred while calculating {paramName}";
                     throw new SqlGenerationException(SqlOperation.Update, message, ex);
                 }
             }
-
             if (firstWhereExpression)
                 throw new SqlGenerationException(SqlOperation.Update, $"There is no private key defined for the entity type: '{typeof(TEntity).FullName}'");
 
@@ -231,8 +223,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 ? commandBuilder.ToString()
                 : ""; // In order to allow append next elements externalBuilder must not be flashed to string.
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
+            if (_logger.IsEnabled(LogLevel.Debug)) {
                 _logger.LogDebug($"command: {command}");
                 _logger.LogDebug($"returningClause: {returningClause}");
             }
