@@ -149,8 +149,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (!propInfo.IsPrivateKey)
                         continue;
                     var whereDelimiter = firstWhereExpression ? "" : " and ";
-                    var propValue      = propInfo.GetPropertyValueAsString(item);
-                    if (propValue == null) {
+                    if (propInfo.IsDynamicallyInvoked()) {
                         commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}");
                         parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                                        {
@@ -159,6 +158,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                        });
                     }
                     else {
+                        var propValue = propInfo.GetPropertyValueAsString(item);
                         commandBuilder.Append($"{whereDelimiter}\"{propInfo.DbColumnName}\"={propValue}");
                     }
                     firstWhereExpression = false;

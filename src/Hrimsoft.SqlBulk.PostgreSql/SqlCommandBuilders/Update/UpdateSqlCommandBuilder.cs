@@ -60,19 +60,22 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             var isThereReturningClause = false;
             var allElementsAreNull     = true;
-            var elementIndex           = -1;
+            var elementIndex           = 0;
+            var elementAbsIndex        = 0;
             using (var elementsEnumerator = elements.GetEnumerator()) {
                 var thereIsMoreElements = true;
+
                 // I'd like to build the first update command, so I can estimate an approximate size of all commands
                 // ignore all null items until find the first not null item
                 while (elementsEnumerator.Current == null && thereIsMoreElements) {
                     thereIsMoreElements = elementsEnumerator.MoveNext();
+                    elementAbsIndex++;
                 }
                 if (thereIsMoreElements) {
                     allElementsAreNull = false;
 
                     var (commandForOneItem, itemParameters, hasReturningClause)
-                        = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0);
+                        = GenerateForItem(entityProfile, elementsEnumerator.Current, null, 0, elementAbsIndex);
                     isThereReturningClause = hasReturningClause;
                     sqlParameters.AddRange(itemParameters);
 
@@ -87,6 +90,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     var commandBuilder = new StringBuilder(entireCommandLength);
                     commandBuilder.AppendLine(commandForOneItem);
                     while (elementsEnumerator.MoveNext()) {
+                        elementAbsIndex++;
                         // ignore all null items 
                         if (elementsEnumerator.Current == null)
                             continue;
@@ -107,7 +111,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                             elementIndex  = 0;
                         }
                         (commandForOneItem, itemParameters, _)
-                            = GenerateForItem(entityProfile, elementsEnumerator.Current, commandBuilder, elementIndex);
+                            = GenerateForItem(entityProfile, elementsEnumerator.Current, commandBuilder, elementIndex, elementAbsIndex);
                         sqlParameters.AddRange(itemParameters);
                         commandBuilder.AppendLine(commandForOneItem);
                     }
@@ -135,12 +139,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="item">an instance that has to be updated to the database</param>
         /// <param name="externalBuilder">Builder to which the generated for an item command will be appended</param>
         /// <param name="elementIndex">As this method is called for each item, this value will be added to the sql parameter name</param>
+        /// <param name="elementAbsIndex"></param>
         /// <returns> Returns named tuple with generated command and list of db parameters. </returns>
-        public (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause)
+        private (string Command, ICollection<NpgsqlParameter> Parameters, bool hasReturningClause)
             GenerateForItem<TEntity>(EntityProfile entityProfile,
                                      TEntity       item,
                                      StringBuilder externalBuilder,
-                                     int           elementIndex)
+                                     int           elementIndex,
+                                     int           elementAbsIndex)
             where TEntity : class
         {
             if (item == null)
@@ -158,13 +164,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             var firstWhereExpression = true;
             var firstReturningColumn = true;
 
-            foreach (var propInfo in entityProfile.Properties.Values) {
-                var paramName = $"@param_{propInfo.DbColumnName}_{elementIndex}";
+            foreach (var pair in entityProfile.Properties) {
                 try {
+                    var propInfo  = pair.Value;
+                    var paramName = $"@param_{propInfo.DbColumnName}_{elementIndex}";
                     if (propInfo.IsPrivateKey) {
                         var whereDelimiter = firstWhereExpression ? "" : ",";
-                        var keyValue       = propInfo.GetPropertyValueAsString(item);
-                        if (keyValue == null) {
+                        if (propInfo.IsDynamicallyInvoked()) {
                             whereClause += $"{whereDelimiter}\"{propInfo.DbColumnName}\"={paramName}";
                             parameters.Add(new NpgsqlParameter(paramName, propInfo.DbColumnType)
                                            {
@@ -173,6 +179,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                            });
                         }
                         else {
+                            var keyValue = propInfo.GetPropertyValueAsString(item);
                             whereClause += $"{whereDelimiter}\"{propInfo.DbColumnName}\"={keyValue}";
                         }
                         firstWhereExpression = false;
@@ -185,8 +192,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     if (propInfo.IsAutoGenerated)
                         continue;
                     var setClauseDelimiter = firstSetExpression ? "" : ",";
-                    var propValue          = propInfo.GetPropertyValueAsString(item);
-                    if (propValue == null) {
+
+                    if (propInfo.IsDynamicallyInvoked()) {
                         commandBuilder.Append($"{setClauseDelimiter}\"{propInfo.DbColumnName}\"=");
                         var value = propInfo.GetPropertyValue(item);
                         if (value == null) {
@@ -201,12 +208,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                         }
                     }
                     else {
+                        var propValue = propInfo.GetPropertyValueAsString(item);
                         commandBuilder.Append($"{setClauseDelimiter}\"{propInfo.DbColumnName}\"={propValue}");
                     }
                     firstSetExpression = false;
                 }
                 catch (Exception ex) {
-                    var message = $"an error occurred while calculating {paramName}";
+                    var message = $"an error occurred while processing a property {pair.Key} of {entityProfile.EntityType.Name} entity, item idx: {elementAbsIndex}";
                     throw new SqlGenerationException(SqlOperation.Update, message, ex);
                 }
             }

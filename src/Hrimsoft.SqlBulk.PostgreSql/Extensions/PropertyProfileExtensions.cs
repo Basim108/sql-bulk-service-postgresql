@@ -17,6 +17,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <returns>Returns True if it will use dynamic invoke, otherwise returns False.</returns>
         public static bool IsDynamicallyInvoked(this PropertyProfile profile)
         {
+            if (profile.PropertyExpression.Body is UnaryExpression) {
+                return true;
+            }
             switch (profile.DbColumnType)
             {
                 case NpgsqlDbType.Bigint:
@@ -148,65 +151,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         public static object GetPropertyValue<TEntity>(this PropertyProfile profile, TEntity item)
             where TEntity : class
         {
-            if (profile == null)
+            if(profile == null)
                 throw new ArgumentNullException(nameof(profile));
-
-            var propertyName = "";
-
-            if (profile.PropertyExpression.Body is MemberExpression memberExpression)
-                propertyName = memberExpression.Member.Name;
-            else if (profile.PropertyExpression.Body is ParameterExpression parameterExpression)
-                propertyName = parameterExpression.Name;
-            else if (profile.PropertyExpression.Body is UnaryExpression unaryExpression &&
-                     unaryExpression.Operand is MemberExpression operand)
-                propertyName = operand.Member.Name;
-            if (!string.IsNullOrEmpty(propertyName))
-            {
-                var propInfo = typeof(TEntity).GetProperty(propertyName);
-                if (propInfo == null)
-                    throw new ArgumentException($"Entity: {typeof(TEntity).FullName} doesn't have property: '{propertyName}'");
-
-                switch (profile.DbColumnType)
-                {
-                    case NpgsqlDbType.Text:
-                    case NpgsqlDbType.Varchar:
-                        var strGetter = (Func<TEntity, string>) Delegate.CreateDelegate(typeof(Func<TEntity, string>), propInfo.GetGetMethod());
-                        return strGetter(item);
-                    case NpgsqlDbType.Timestamp:
-                        if (profile.IsNullable)
-                        {
-                            var dateTimeNullableGetter = (Func<TEntity, DateTime?>) Delegate.CreateDelegate(typeof(Func<TEntity, DateTime?>), propInfo.GetGetMethod());
-                            return dateTimeNullableGetter(item);
-                        }
-                        var dateTimeGetter = (Func<TEntity, DateTime>) Delegate.CreateDelegate(typeof(Func<TEntity, DateTime>), propInfo.GetGetMethod());
-                        return dateTimeGetter(item);
-                    case NpgsqlDbType.TimestampTz:
-                        if (profile.IsNullable)
-                        {
-                            var dateTimeOffsetNullableGetter = (Func<TEntity, DateTimeOffset?>) Delegate.CreateDelegate(typeof(Func<TEntity, DateTimeOffset?>), propInfo.GetGetMethod());
-                            return dateTimeOffsetNullableGetter(item);
-                        }
-                        var dateTimeOffsetGetter = (Func<TEntity, DateTimeOffset>) Delegate.CreateDelegate(typeof(Func<TEntity, DateTimeOffset>), propInfo.GetGetMethod());
-                        return dateTimeOffsetGetter(item);
-                }
-            }
             var value = profile.PropertyExpressionCompiled.DynamicInvoke(item);
-            if (value != null && value.GetType().IsEnum)
-            {
-                switch (profile.DbColumnType)
-                {
-                    case NpgsqlDbType.Bigint:
-                        value = (long) value;
-                        break;
-                    case NpgsqlDbType.Integer:
-                        value = (int) value;
-                        break;
-                    case NpgsqlDbType.Varchar:
-                        value = value.ToString();
-                        break;
-                }
-                value = (int) value;
-            }
             return value;
         }
 

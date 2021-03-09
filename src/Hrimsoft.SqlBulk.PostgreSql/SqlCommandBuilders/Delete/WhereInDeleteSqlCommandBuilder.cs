@@ -108,8 +108,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                             cmdBuilder.Append(commandHeader);
                             whereDelimiter = "";
                         }
-                        var propValue = privateKeys[0].GetPropertyValueAsString(elementsEnumerator.Current);
-                        if (sqlParameters != null) {
+                        if (privateKeys[0].IsDynamicallyInvoked()) {
                             var paramName = $"@param_{privateKeys[0].DbColumnName}_{elementIndex}";
                             cmdBuilder.Append($"{whereDelimiter}{paramName}");
                             var value = privateKeys[0].GetPropertyValue(elementsEnumerator.Current);
@@ -122,6 +121,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                               });
                         }
                         else {
+                            var propValue = privateKeys[0].GetPropertyValueAsString(elementsEnumerator.Current);
                             cmdBuilder.Append($"{whereDelimiter}{propValue}");
                         }
                     }

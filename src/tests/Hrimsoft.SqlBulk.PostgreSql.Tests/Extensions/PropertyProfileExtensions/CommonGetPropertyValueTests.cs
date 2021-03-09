@@ -116,10 +116,26 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions.PropertyProfileExtensions
 
             var expected = new DateTime(2021, 3, 9, 13, 14, 25, DateTimeKind.Utc);
             var item     = new EntityWithDateTime {DateAndTime = new DateTime(2021, 3, 9, 13, 14, 25, DateTimeKind.Utc)};
-            var actual   = (DateTime)propInfo.GetPropertyValue(item);
+            var actual   = (DateTime) propInfo.GetPropertyValue(item);
 
             Assert.AreEqual(actual.ToString("O"), expected.ToString("O"));
             Assert.AreEqual(actual.Kind, expected.Kind);
+        }
+
+
+        [Test]
+        public void Should_calculate_value_of_enum_property()
+        {
+            var entityProfile = new EntityProfile(typeof(TestEntity));
+            var propInfo      = entityProfile.HasProperty<TestEntity, string>("enumeration", x => x.Enumeration.ToString());
+
+            Assert.NotNull(propInfo);
+
+            var expected = SomeEnum.AnotherValue;
+            var item     = new TestEntity {Enumeration = expected};
+            var actual   = propInfo.GetPropertyValue(item);
+
+            Assert.AreEqual(actual, expected.ToString());
         }
     }
 }

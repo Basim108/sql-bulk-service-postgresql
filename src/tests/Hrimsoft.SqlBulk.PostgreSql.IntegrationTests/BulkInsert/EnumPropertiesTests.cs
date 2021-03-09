@@ -75,5 +75,18 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkInsert
             Assert.AreEqual(4, elements[3].Id);
             Assert.AreEqual(SomeEnum.AnotherValue, elements[3].SomeEnumValue);
         }
+        
+        
+        [Test]
+        public void Insert_should_set_enum_value_as_nullable_int()
+        {
+            var bulkServiceOptions = new BulkServiceOptions();
+            var entityProfile      = new EntityWithIntegerEnumProfile();
+            bulkServiceOptions.AddEntityProfile<TestEntityWithIntEnum>(entityProfile);
+
+            var propInfo = entityProfile.Properties[nameof(TestEntityWithIntEnum.SomeEnumValue)];
+
+            Assert.IsTrue(propInfo.IsDynamicallyInvoked());
+        }
     }
 }

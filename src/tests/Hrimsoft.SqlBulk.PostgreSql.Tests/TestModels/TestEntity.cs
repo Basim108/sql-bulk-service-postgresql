@@ -14,5 +14,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels
         public double DoubleValue { get; set; }
         public decimal DecimalValue { get; set; }
         public bool BoolValue { get; set; }
+        
+        public SomeEnum Enumeration { get; set; }
     }
 }
