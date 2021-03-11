@@ -24,6 +24,16 @@ ProjectSection(SolutionItems) = preProject
 	..\.github\workflows\ci.yml = ..\.github\workflows\ci.yml
 EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7E7B6E9C-A876-40E9-AE65-5B5AA8772BB0}"
+ProjectSection(SolutionItems) = preProject
+	..\docs\basic-usage.md = ..\docs\basic-usage.md
+	..\docs\error-handling.md = ..\docs\error-handling.md
+	..\docs\mapping.md = ..\docs\mapping.md
+	..\docs\returning-clause.md = ..\docs\returning-clause.md
+	..\docs\test-configuration.png = ..\docs\test-configuration.png
+	..\docs\upsert-usage.md = ..\docs\upsert-usage.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +58,6 @@ Global
 		{054E56A1-FE7D-408A-9B76-7030513B7F97} = {A5A1AF75-AA82-4101-9A0F-6918D9895C1B}
 		{155FD67B-4DC2-4423-91ED-64CA890DB181} = {66B5681A-924F-4EE9-AA81-74819D3F8747}
 		{EAAD5E9E-9261-41C6-B677-EDF06435ACE3} = {155FD67B-4DC2-4423-91ED-64CA890DB181}
+		{7E7B6E9C-A876-40E9-AE65-5B5AA8772BB0} = {66B5681A-924F-4EE9-AA81-74819D3F8747}
 	EndGlobalSection
 EndGlobal

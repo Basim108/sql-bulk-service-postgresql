@@ -36,7 +36,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests
                         Host = Configuration[$"{_environment}:DbHost"],
                         Database = Configuration[$"{_environment}:Database"],
                         Username = Configuration[$"{_environment}:DbUsername"],
-                        Password = Configuration[$"{_environment}:DbPassword"]
+                        Password = Configuration[$"{_environment}:DbPassword"],
+                        Port = int.Parse(Configuration[$"{_environment}:DbPort"])
                     };
                     _connectionString = builder.ConnectionString;
                 }
