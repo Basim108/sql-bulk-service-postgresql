@@ -31,17 +31,17 @@ In a nutshell,
 As upsert command supported in postgres only from 9.5 and higher versions we need to install it:
 It's better to extract db data from docker container with volumes, so when recreating a docker container you will not be required to run sql scripts again.
 ```
-docker run -d --name db-bulk-tests -p 8765:5432 \\
-       -e POSTGRES_PASSWORD=Q_w_E_r_T_y \\
-       -v /db/sql-bulk-service-postgresql/:/var/lib/postgresql/data \\
+docker run -d --name db-bulk-tests -p 8765:5432 \
+       -e POSTGRES_PASSWORD=Q_w_E_r_T_y \
+       -v /db/sql-bulk-service-postgresql/:/var/lib/postgresql/data \
        postgres:alpine
 ```
 If the data volume you're using is a filesystem mountpoint (like with GCE persistent disks) or remote folder that cannot be chowned to the postgres user (like some NFS mounts), Postgres initdb recommends a subdirectory be created to contain the data.
 ```
-docker run -d --name db-bulk-tests -p 8765:5432 \\
-       -e POSTGRES_PASSWORD=Q_w_E_r_T_y \\
-       -e PGDATA=/var/lib/postgresql/data/pgdata \\
-       -v /db/sql-bulk-service-postgresql/:/var/lib/postgresql/data \\
+docker run -d --name db-bulk-tests -p 8765:5432 \
+       -e POSTGRES_PASSWORD=Q_w_E_r_T_y \
+       -e PGDATA=/var/lib/postgresql/data/pgdata \
+       -v /db/sql-bulk-service-postgresql/:/var/lib/postgresql/data \
        postgres:alpine
 ```
 I mapped db port on 8765 just for example, if you don't have another installed postgres on your host, you can keep the standard port 5432, so it'll be 5432:5432
