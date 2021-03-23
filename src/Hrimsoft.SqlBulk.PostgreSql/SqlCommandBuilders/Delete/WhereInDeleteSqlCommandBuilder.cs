@@ -92,10 +92,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                            isThereReturningClause: false,
                                            elementsCount: elementIndex
                                        ));
-                            if (_logger.IsEnabled(LogLevel.Information)) {
+                            if (_logger.IsEnabled(LogLevel.Debug)) {
                                 var (cmdSize, suffix) = ((long) cmdBuilder.Length * 2).PrettifySize();
-                                _logger.LogInformation(
-                                    $"Generated sql where-in-delete command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                                _logger.LogDebug($"Generated sql where-in-delete command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
                             }
                             sqlParameters = new List<NpgsqlParameter>(sqlParameters.Count);
                             cmdBuilder.Clear();

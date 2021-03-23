@@ -102,9 +102,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                            isThereReturningClause,
                                            elementsCount: elementIndex
                                        ));
-                            if (_logger.IsEnabled(LogLevel.Information)) {
+                            if (_logger.IsEnabled(LogLevel.Debug)) {
                                 var (cmdSize, suffix) = ((long) commandBuilder.Length * 2).PrettifySize();
-                                _logger.LogInformation($"Generated sql update command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                                _logger.LogDebug($"Generated sql update command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
                             }
                             commandBuilder.Clear();
                             sqlParameters = new List<NpgsqlParameter>(sqlParameters.Count);

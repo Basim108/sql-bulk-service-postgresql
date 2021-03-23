@@ -135,9 +135,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                        isThereReturningClause: hasReturningClause,
                                        elementsCount: elementIndex + 1
                                    ));
-                        if (_logger.IsEnabled(LogLevel.Information)) {
+                        if (_logger.IsEnabled(LogLevel.Debug)) {
                             var (cmdSize, suffix) = ((long) commandBuilder.Length * 2).PrettifySize();
-                            _logger.LogInformation($"Generated sql upsert command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
+                            _logger.LogDebug($"Generated sql upsert command for {elementIndex + 1} {entityProfile.EntityType.Name} elements, command size {cmdSize:F2} {suffix}");
                         }
                         sqlParameters = new List<NpgsqlParameter>(sqlParameters.Count);
                         commandBuilder.Clear();
