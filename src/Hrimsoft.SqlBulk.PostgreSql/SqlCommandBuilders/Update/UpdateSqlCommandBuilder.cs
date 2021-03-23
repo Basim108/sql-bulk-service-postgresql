@@ -125,8 +125,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
 
             result.Add(new SqlCommandBuilderResult(
                            command: resultCommand,
-                           sqlParameters,
-                           isThereReturningClause,
+                           sqlParameters: sqlParameters,
+                           isThereReturningClause: isThereReturningClause,
                            elementsCount: elementIndex + 1
                        ));
             return result;

@@ -118,9 +118,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 throw new ArgumentNullException(nameof(elements));
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
-
-            _logger.LogTrace($"Preparing a bulk {operation} operation");
-
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogTrace($"Preparing a bulk {operation} operation");
+            Stopwatch sw = null;
+            if (_logger.IsEnabled(LogLevel.Information))
+                sw = Stopwatch.StartNew();
             var entityType = typeof(TEntity);
             if (!_options.SupportedEntityTypes.ContainsKey(entityType))
                 throw new ArgumentException($"Mapping for type '{entityType.FullName}' was not found.", nameof(elements));
@@ -142,16 +144,24 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     await connection.OpenAsync(cancellationToken);
                 transaction = connection.BeginTransaction();
             }
+            var totalSqlSize         = 0L;
+            var totalSqlCommandCount = 0;
             if (maximumEntitiesPerSent == 0 || elements.Count <= maximumEntitiesPerSent) {
                 try {
-                    await ExecutePortionAsync(operation,
-                                              connection,
-                                              elements,
-                                              entityProfile,
-                                              cancellationToken);
+                    var (sqlSize, sqlCommandCount) = await ExecutePortionAsync(operation,
+                                                                               connection,
+                                                                               elements,
+                                                                               entityProfile,
+                                                                               cancellationToken);
+                    totalSqlSize         += sqlSize;
+                    totalSqlCommandCount += sqlCommandCount;
                     if (transaction != null)
                         await transaction.CommitAsync(cancellationToken);
                     result?.Operated.AddRange(elements);
+                    if (sw != null) {
+                        var (size, suffix) = totalSqlSize.PrettifySize();
+                        _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements, {totalSqlCommandCount} sql commands ({size}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
+                    }
                 }
                 catch (Exception ex) {
                     var notOperatedElements = needNotOperatedElements ? elements : null;
@@ -170,10 +180,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                 }
             }
             else {
-                Stopwatch sw = null;
-                if (_logger.IsEnabled(LogLevel.Information))
-                    sw = Stopwatch.StartNew();
-
                 var operated    = needOperatedElements ? new List<TEntity>(elements.Count) : null;
                 var notOperated = needNotOperatedElements ? new List<TEntity>(elements.Count) : null;
                 var problem     = needProblemElements ? new List<TEntity>(maximumEntitiesPerSent) : null;
@@ -185,11 +191,13 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                           .Take(maximumEntitiesPerSent)
                                           .ToList();
                     try {
-                        await ExecutePortionAsync(operation,
-                                                  connection,
-                                                  portion,
-                                                  entityProfile,
-                                                  cancellationToken);
+                        var (sqlSize, sqlCommandCount) = await ExecutePortionAsync(operation,
+                                                                                   connection,
+                                                                                   portion,
+                                                                                   entityProfile,
+                                                                                   cancellationToken);
+                        totalSqlSize         += sqlSize;
+                        totalSqlCommandCount += sqlCommandCount;
                         operated?.AddRange(portion);
                         result?.Operated.AddRange(portion);
                     }
@@ -225,9 +233,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                                                   cancellationToken);
                     }
                 }
+                if (transaction != null)
+                    await transaction.CommitAsync(cancellationToken);
                 if (sw != null) {
-                    _logger.LogInformation(
-                        $"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps in total {sw.ElapsedMilliseconds / 1000f:F3} seconds");
+                    var (size, suffix) = totalSqlSize.PrettifySize();
+                    _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps, {totalSqlCommandCount} sql commands ({size}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
                 }
             }
             return result;
@@ -260,9 +270,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (entityProfile == null)
                 throw new ArgumentNullException(nameof(entityProfile));
 
-            var needOperated    = entityProfile.IsOperatedElementsEnabled ?? _options.IsOperatedElementsEnabled;
+            var needOperated    = entityProfile.IsOperatedElementsEnabled    ?? _options.IsOperatedElementsEnabled;
             var needNotOperated = entityProfile.IsNotOperatedElementsEnabled ?? _options.IsNotOperatedElementsEnabled;
-            var needProblem     = entityProfile.IsProblemElementsEnabled ?? _options.IsProblemElementsEnabled;
+            var needProblem     = entityProfile.IsProblemElementsEnabled     ?? _options.IsProblemElementsEnabled;
             return (needOperated, needNotOperated, needProblem);
         }
 
@@ -299,12 +309,11 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <param name="entityProfile"></param>
         /// <param name="cancellationToken"></param>
         /// <typeparam name="TEntity"></typeparam>
-        public async Task ExecutePortionAsync<TEntity>(
-            SqlOperation         operation,
-            NpgsqlConnection     connection,
-            ICollection<TEntity> elements,
-            EntityProfile        entityProfile,
-            CancellationToken    cancellationToken)
+        public async Task<(long sqlSize, int sqlCommandCount)> ExecutePortionAsync<TEntity>(SqlOperation         operation,
+                                                                                            NpgsqlConnection     connection,
+                                                                                            ICollection<TEntity> elements,
+                                                                                            EntityProfile        entityProfile,
+                                                                                            CancellationToken    cancellationToken)
             where TEntity : class
         {
             if (connection == null)
@@ -312,39 +321,34 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (elements == null)
                 throw new ArgumentNullException(nameof(elements));
 
-            _logger.LogTrace($"Executing portion of {elements.Count} elements. {operation} operation");
-            Stopwatch sw = null;
-            if (_logger.IsEnabled(LogLevel.Information))
-                sw = Stopwatch.StartNew();
-
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.LogTrace($"Executing a portion of {elements.Count} elements. {operation} operation");
             if (connection.State != ConnectionState.Open)
                 await connection.OpenAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var commandBuilder = GetCommandBuilder(operation);
-
+            var commandBuilder    = GetCommandBuilder(operation);
             var generatedCommands = commandBuilder.Generate(elements, entityProfile, cancellationToken);
-            if (sw != null) {
-                sw.Stop();
-                _logger.LogInformation(
-                    $"Generated {generatedCommands.Count} sql {operation.ToString().ToLowerInvariant()} commands for {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} seconds");
-                sw = Stopwatch.StartNew();
-            }
 #if DEBUG
             var commandIdx = -1;
 #endif
             // starting enumerate elements in order to update/set auto generated properties
+            var totalSqlSize = 0L;
             using (var elementsEnumerator = elements.GetEnumerator()) {
-                foreach (var commandResult in generatedCommands) {
+                for (var i = 0; i < generatedCommands.Count; i++) {
+                    var commandResult = generatedCommands[i];
+                    totalSqlSize += commandResult.Command.Length * 2;
                     using (var command = new NpgsqlCommand(commandResult.Command, connection)) {
 #if DEBUG
                         commandIdx++;
                         Directory.CreateDirectory("/tmp/hrimsoft");
                         File.WriteAllText($"/tmp/hrimsoft/{operation}-bulk-{commandIdx}.sql", commandResult.Command);
 #endif
-                        foreach (var param in commandResult.SqlParameters)
+                        for (var j = 0; j < commandResult.SqlParameters.Count; j++) {
+                            var param = commandResult.SqlParameters[j];
                             command.Parameters.Add(param);
+                        }
                         using (var reader = await command.ExecuteReaderAsync(cancellationToken)) {
                             while (await reader.ReadAsync(cancellationToken)) {
                                 if (!elementsEnumerator.MoveNext()) {
@@ -361,9 +365,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     }
                 }
             }
-            if (sw != null) {
-                _logger.LogInformation($"{operation}ed a portion of {elements.Count} {entityProfile.EntityType.Name} elements in {sw.ElapsedMilliseconds / 1000f} seconds");
-            }
+            return (totalSqlSize, generatedCommands.Count);
         }
 
         public FailureStrategies GetCurrentFailureStrategy(EntityProfile entityProfile)

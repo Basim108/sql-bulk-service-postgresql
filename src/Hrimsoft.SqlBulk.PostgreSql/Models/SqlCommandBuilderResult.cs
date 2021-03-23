@@ -8,10 +8,10 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class SqlCommandBuilderResult
     {
-        public SqlCommandBuilderResult(string                       command,
-                                       ICollection<NpgsqlParameter> sqlParameters,
-                                       bool                         isThereReturningClause,
-                                       int                          elementsCount)
+        public SqlCommandBuilderResult(string                 command,
+                                       IList<NpgsqlParameter> sqlParameters,
+                                       bool                   isThereReturningClause,
+                                       int                    elementsCount)
         {
             Command                = command;
             SqlParameters          = sqlParameters;
@@ -27,7 +27,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         /// <summary>
         /// Parameters that were included into the command
         /// </summary>
-        public ICollection<NpgsqlParameter> SqlParameters { get; }
+        public IList<NpgsqlParameter> SqlParameters { get; }
 
         /// <summary>
         /// Does the sql command contains a returning clause
