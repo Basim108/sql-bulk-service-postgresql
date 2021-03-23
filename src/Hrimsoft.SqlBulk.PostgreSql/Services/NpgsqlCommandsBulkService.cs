@@ -160,7 +160,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     result?.Operated.AddRange(elements);
                     if (sw != null) {
                         var (size, suffix) = totalSqlSize.PrettifySize();
-                        _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements, {totalSqlCommandCount} sql commands ({size}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
+                        _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements, {totalSqlCommandCount} sql commands ({size:0.00}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
                     }
                 }
                 catch (Exception ex) {
@@ -237,7 +237,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     await transaction.CommitAsync(cancellationToken);
                 if (sw != null) {
                     var (size, suffix) = totalSqlSize.PrettifySize();
-                    _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps, {totalSqlCommandCount} sql commands ({size}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
+                    _logger.LogInformation($"{operation}ed {elements.Count} {entityProfile.EntityType.Name} elements in {iterations} steps, {totalSqlCommandCount} sql commands ({size:0.00}{suffix}) in total {sw.ElapsedMilliseconds / 1000f:0.000} s");
                 }
             }
             return result;
