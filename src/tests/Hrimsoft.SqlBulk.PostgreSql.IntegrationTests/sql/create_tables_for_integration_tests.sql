@@ -90,3 +90,12 @@ create table "unit_tests"."bulk_test_entity"
     value integer not null,
     nullable_int integer
 );
+
+drop table if exists "unit_tests"."entity_with_composite_pk";
+create table "unit_tests"."entity_with_composite_pk"
+(
+    user_id integer not null,
+    column2 integer not null,
+    column3 integer not null,
+    CONSTRAINT "PK_entity_with_composite_pk" PRIMARY KEY (user_id, column2)
+);

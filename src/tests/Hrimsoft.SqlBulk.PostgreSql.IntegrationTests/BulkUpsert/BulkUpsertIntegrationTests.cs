@@ -61,11 +61,21 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
             await using var connection = new NpgsqlConnection(_configuration.ConnectionString);
             await _testService.UpsertAsync(connection, elements, CancellationToken.None);
 
-            Assert.AreEqual(1, elements[0].Id);
-            Assert.AreEqual("rec-01", elements[0].RecordId);
-            Assert.AreEqual("sens-01", elements[0].SensorId);
-            Assert.AreEqual(127, elements[0].Value);
-            Assert.IsNull(elements[0].NullableValue);
+            var       query   = "select * from unit_tests.entity_with_unique_columns;";
+            using var command = new NpgsqlCommand(query, connection);
+            using (var reader = command.ExecuteReader()) {
+                var count = 0;
+                while (reader.Read()) {
+                    count++;
+                    Assert.AreEqual(1, count);
+                    Assert.AreEqual(1, elements[0].Id);
+                    Assert.AreEqual("rec-01", elements[0].RecordId);
+                    Assert.AreEqual("sens-01", elements[0].SensorId);
+                    Assert.AreEqual(127, elements[0].Value);
+                    Assert.IsNull(elements[0].NullableValue);
+                }
+                await reader.CloseAsync();
+            }
         }
 
         [Test]
@@ -80,12 +90,22 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
             elements.First().NullableValue = null; // this item should be updated
             // This item should be inserted
             await _testService.UpsertAsync(connection, elements, CancellationToken.None);
-
-            Assert.AreEqual(1, elements[0].Id);
-            Assert.AreEqual("rec-01", elements[0].RecordId);
-            Assert.AreEqual("sens-01", elements[0].SensorId);
-            Assert.AreEqual(127, elements[0].Value);
-            Assert.IsNull(elements[0].NullableValue);
+            
+            var       query   = "select * from unit_tests.entity_with_unique_columns;";
+            using var command = new NpgsqlCommand(query, connection);
+            using (var reader = command.ExecuteReader()) {
+                var count = 0;
+                while (reader.Read()) {
+                    count++;
+                    Assert.AreEqual(1, count);
+                    Assert.AreEqual(1, elements[0].Id);
+                    Assert.AreEqual("rec-01", elements[0].RecordId);
+                    Assert.AreEqual("sens-01", elements[0].SensorId);
+                    Assert.AreEqual(127, elements[0].Value);
+                    Assert.IsNull(elements[0].NullableValue);
+                }
+                await reader.CloseAsync();
+            }
         }
 
         [Test]
@@ -102,17 +122,30 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
             elements.Add(new TestEntity {RecordId = "rec-02", SensorId = "sens-01", Value = 1});
             await _testService.UpsertAsync(connection, elements, CancellationToken.None);
 
-            Assert.AreEqual(1, elements[0].Id);
-            Assert.AreEqual("rec-01", elements[0].RecordId);
-            Assert.AreEqual("sens-01", elements[0].SensorId);
-            Assert.AreEqual(128, elements[0].Value);
-
-            // id = 3 because upsert calls a sequence then has a constraint violation and start doing update.
-            // Then it processes the second element and again calls sequence so gets 3;
-            Assert.AreEqual(3, elements[1].Id);
-            Assert.AreEqual("rec-02", elements[1].RecordId);
-            Assert.AreEqual("sens-01", elements[1].SensorId);
-            Assert.AreEqual(1, elements[1].Value);
+            var       query   = "select * from unit_tests.entity_with_unique_columns order by id;";
+            using var command = new NpgsqlCommand(query, connection);
+            using (var reader = command.ExecuteReader()) {
+                var count = 0;
+                while (reader.Read()) {
+                    count++;
+                    if (count == 1) {
+                        Assert.AreEqual(1, elements[0].Id);
+                        Assert.AreEqual("rec-01", elements[0].RecordId);
+                        Assert.AreEqual("sens-01", elements[0].SensorId);
+                        Assert.AreEqual(128, elements[0].Value);
+                    }
+                    else if (count == 2) {
+                        // id = 3 because upsert calls a sequence then has a constraint violation and start doing update.
+                        // Then it processes the second element and again calls sequence so gets 3;
+                        Assert.AreEqual(3, elements[1].Id);
+                        Assert.AreEqual("rec-02", elements[1].RecordId);
+                        Assert.AreEqual("sens-01", elements[1].SensorId);
+                        Assert.AreEqual(1, elements[1].Value);
+                    }
+                }
+                await reader.CloseAsync();
+                Assert.AreEqual(2, count);
+            }
         }
 
         [Test]

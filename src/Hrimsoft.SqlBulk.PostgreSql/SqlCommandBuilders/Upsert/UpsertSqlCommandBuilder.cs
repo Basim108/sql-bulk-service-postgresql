@@ -203,7 +203,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
                     continue;
                 if (!propInfo.IsPartOfUniqueConstraint) {
                     var upsertSetDelimiter = firstUpdateSetColumn ? " do update set " : ", ";
-                    upsertClause         += $"{upsertSetDelimiter}\"{propInfo.DbColumnName}\" = {entityProfile.TableName}.\"{propInfo.DbColumnName}\"";
+                    upsertClause         += $"{upsertSetDelimiter}\"{propInfo.DbColumnName}\" = excluded.\"{propInfo.DbColumnName}\"";
                     firstUpdateSetColumn =  false;
                 }
                 var delimiter = firstColumn ? "" : ", ";
