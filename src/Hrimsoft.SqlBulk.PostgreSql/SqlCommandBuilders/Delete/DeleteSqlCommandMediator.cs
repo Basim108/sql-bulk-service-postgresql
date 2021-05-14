@@ -11,16 +11,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class DeleteSqlCommandMediator : IDeleteSqlCommandBuilder
     {
-        private readonly SimpleDeleteSqlCommandBuilder     _simpleBuilder;
         private readonly WhereInDeleteSqlCommandBuilder    _whereInBuilder;
+        private readonly WhereOrDeleteSqlCommandBuilder    _whereOrBuilder;
         private readonly ILogger<DeleteSqlCommandMediator> _logger;
 
-        public DeleteSqlCommandMediator(SimpleDeleteSqlCommandBuilder     simpleBuilder,
-                                        WhereInDeleteSqlCommandBuilder    whereInBuilder,
+        public DeleteSqlCommandMediator(WhereInDeleteSqlCommandBuilder    whereInBuilder,
+                                        WhereOrDeleteSqlCommandBuilder    whereOrBuilder,
                                         ILogger<DeleteSqlCommandMediator> logger)
         {
-            _simpleBuilder  = simpleBuilder;
             _whereInBuilder = whereInBuilder;
+            _whereOrBuilder = whereOrBuilder;
             _logger         = logger;
         }
 
@@ -35,20 +35,16 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if (elements.Count == 0)
                 throw new ArgumentException("There is no elements in the collection. At least one element must be.", nameof(elements));
 
-            var privateKeys = entityProfile.Properties
-                                           .Values
-                                           .Where(x => x.IsPrivateKey)
-                                           .ToList();
-            if (privateKeys.Count == 0)
+            var privateKeyCount = entityProfile.Properties.Count(x => x.Value.IsPrivateKey);
+            if (privateKeyCount == 0)
                 throw new ArgumentException($"Entity {entityProfile.EntityType.FullName} must have at least one private key.",
                                             nameof(entityProfile));
-            if (privateKeys.Count > 1)
-            {
-                _logger.LogDebug($"Simple sql-delete command builder has been selected as there are more than one private keys in entity {entityProfile.EntityType.FullName}");
-                return _simpleBuilder.Generate(elements, entityProfile, cancellationToken);
+            if (privateKeyCount == 1) {
+                _logger.LogDebug($"WhereIn sql-delete command builder has been selected as there is only one private key in entity {entityProfile.EntityType.FullName}");
+                return _whereInBuilder.Generate(elements, entityProfile, cancellationToken);
             }
-            _logger.LogDebug($"WhereIn sql-delete command builder has been selected as there is only one private key in entity {entityProfile.EntityType.FullName}");
-            return _whereInBuilder.Generate(elements, entityProfile, cancellationToken);
+            _logger.LogDebug($"WhereOr sql-delete command builder has been selected as there are more than one private keys in entity {entityProfile.EntityType.FullName}");
+            return _whereOrBuilder.Generate(elements, entityProfile, cancellationToken);
         }
     }
 }

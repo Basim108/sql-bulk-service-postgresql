@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels;
@@ -55,7 +54,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
         {
             var elements = new List<TestEntityWithCompositePk>
                            {
-                               new TestEntityWithCompositePk {UserId = 1, Column2 = 2, Column3 = 3},
+                               new TestEntityWithCompositePk {UserId = 1, Column2 = "value-2", Column3 = 3},
                            };
             await using var connection = new NpgsqlConnection(_configuration.ConnectionString);
             await _testService.UpsertAsync(connection, elements, CancellationToken.None);
@@ -67,7 +66,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
                     count++;
                     Assert.AreEqual(1, count);
                     Assert.AreEqual(1, (int)reader["user_id"]);
-                    Assert.AreEqual(2, (int)reader["column2"]);
+                    Assert.AreEqual("value-2", (string)reader["column2"]);
                     Assert.AreEqual(3, (int)reader["column3"]);
                 }
                 await reader.CloseAsync();
@@ -79,7 +78,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
         {
             var elements = new List<TestEntityWithCompositePk>
                            {
-                               new TestEntityWithCompositePk {UserId = 1, Column2 = 2, Column3 = 5},
+                               new TestEntityWithCompositePk {UserId = 1, Column2 = "value-2", Column3 = 5},
                            };
             await using var connection = new NpgsqlConnection(_configuration.ConnectionString);
             await _testService.InsertAsync(connection, elements, CancellationToken.None);
@@ -95,7 +94,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
                     count++;
                     Assert.AreEqual(1, count);
                     Assert.AreEqual(1, (int)reader["user_id"]);
-                    Assert.AreEqual(2, (int)reader["column2"]);
+                    Assert.AreEqual("value-2", (string)reader["column2"]);
                     Assert.AreEqual(10, (int)reader["column3"]);
                 }
                 await reader.CloseAsync();

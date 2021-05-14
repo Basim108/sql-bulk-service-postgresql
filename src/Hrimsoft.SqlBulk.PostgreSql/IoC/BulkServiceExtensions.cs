@@ -30,6 +30,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             services.AddTransient<IDeleteSqlCommandBuilder, DeleteSqlCommandMediator>();
             services.AddTransient<SimpleDeleteSqlCommandBuilder>();
             services.AddTransient<WhereInDeleteSqlCommandBuilder>();
+            services.AddTransient<WhereOrDeleteSqlCommandBuilder>();
             services.AddTransient<IUpsertSqlCommandBuilder, UpsertSqlCommandBuilder>();
             
             services.AddTransient<IPostgreSqlBulkService>(

@@ -11,7 +11,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
             this.HasUniqueConstraint("PK_entity_with_composite_pk");
             this.HasPropertyAsPartOfUniqueConstraint<TestEntityWithCompositePk, int>(entity => entity.UserId)
                 .ThatIsPrivateKey();
-            this.HasPropertyAsPartOfUniqueConstraint<TestEntityWithCompositePk, int>(entity => entity.Column2)
+            this.HasPropertyAsPartOfUniqueConstraint<TestEntityWithCompositePk, string>(entity => entity.Column2)
                 .ThatIsPrivateKey();
             this.HasProperty<TestEntityWithCompositePk, int>(entity => entity.Column3);
         }
