@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
+using Hrimsoft.Core.ValueTypes;
 using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
@@ -139,8 +140,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             }
             return null;
         }
-
-
+        
         /// <summary>
         /// Calculates value of an item's property
         /// </summary>
@@ -154,6 +154,8 @@ namespace Hrimsoft.SqlBulk.PostgreSql
             if(profile == null)
                 throw new ArgumentNullException(nameof(profile));
             var value = profile.PropertyExpressionCompiled.DynamicInvoke(item);
+            if (value is Date date)
+                return date.ToDateTime();
             return value;
         }
 

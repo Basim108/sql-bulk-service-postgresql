@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Hrimsoft.Core.Exceptions;
 using JetBrains.Annotations;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
@@ -78,7 +79,9 @@ namespace Hrimsoft.SqlBulk.PostgreSql
         {
             if (profile == null)
                 throw new ArgumentNullException(nameof(profile));
-            
+            var entityType = typeof(TEntity);
+            if (_supportedEntityTypes.ContainsKey(entityType))
+                throw new ConfigurationException($"Cannot add profile for {entityType.FullName} as it already exists in configuration.");
             _supportedEntityTypes.Add(typeof(TEntity), profile);
         }
         #endregion

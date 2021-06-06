@@ -1,3 +1,4 @@
+using Hrimsoft.Core.ValueTypes;
 using Hrimsoft.SqlBulk.PostgreSql;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NpgsqlTypes;
@@ -79,7 +80,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Options
 
             propertyProfile = _entityProfile.Properties[nameof(AnnotatedEntity.ValueGeneratedOnUpdate)];
             Assert.AreEqual(NpgsqlDbType.Bigint, propertyProfile.DbColumnType);
-
+        }
+        
+        [Test]
+        public void Should_set_date_column_types()
+        {
+            var entityProfile   = new EntityProfile(typeof(EntityWithDateTime));
+            var propertyProfile = entityProfile.HasProperty<EntityWithDateTime, Date>(x => x.Date);
+            Assert.AreEqual(NpgsqlDbType.Date, propertyProfile.DbColumnType);
         }
         
         [Test]
