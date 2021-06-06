@@ -75,6 +75,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpdate
         }
 
         [Test]
+        [Ignore("Should run manually")]
         public async Task Update_should_update_more_than_65K_items()
         {
             var elements = new List<TestEntity>(70_000);

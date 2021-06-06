@@ -83,6 +83,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkDelete
         }
 
         [Test]
+        [Ignore("Should run manually")]
         public async Task Should_delete_70K_items()
         {
             var elements = new List<TestEntityWithCompositePk>(70_000);

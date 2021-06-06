@@ -149,6 +149,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkUpsert
         }
 
         [Test]
+        [Ignore("Should run manually")]
         public async Task Should_insert_and_update_more_than_65K()
         {
             const int EXISTED_ITEMS_COUNT = 10_000;

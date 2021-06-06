@@ -1,7 +1,5 @@
 using System;
-using System.Data;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql
@@ -11,7 +9,6 @@ namespace Hrimsoft.SqlBulk.PostgreSql
     /// </summary>
     public class PropertyProfile
     {
-        /// <inheritdoc />
         public PropertyProfile(string column, LambdaExpression propertyExpression)
         {
             if (string.IsNullOrWhiteSpace(column))

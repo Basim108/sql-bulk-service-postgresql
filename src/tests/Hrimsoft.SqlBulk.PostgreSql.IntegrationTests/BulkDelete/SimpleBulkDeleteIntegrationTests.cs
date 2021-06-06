@@ -146,6 +146,7 @@ namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.BulkDelete
         }
         
         [Test]
+        [Ignore("Should run manually")]
         public async Task SimpleDelete_should_delete_more_than_65K_elements()
         {
             const int MAX_ELEMENTS_COUNT = 70_000;

@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Hrimsoft.Core" Version="0.0.4" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.1" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.1" />
         <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.0.1" />

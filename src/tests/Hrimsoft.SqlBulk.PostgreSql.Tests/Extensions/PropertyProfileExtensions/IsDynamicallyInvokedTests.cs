@@ -1,4 +1,5 @@
 using System;
+using Hrimsoft.Core.ValueTypes;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NUnit.Framework;
 
@@ -138,6 +139,14 @@ namespace Hrimsoft.SqlBulk.PostgreSql.Tests.Extensions.PropertyProfileExtensions
         {
             var entityProfile = new EntityProfile(typeof(EntityWithDateTime));
             var propInfo      = entityProfile.HasProperty<EntityWithDateTime, DateTimeOffset>(entity => entity.DateTimeAndOffset);
+            Assert.IsTrue(propInfo.IsDynamicallyInvoked());
+        }
+        
+        [Test]
+        public void Should_return_true_given_date_member()
+        {
+            var entityProfile = new EntityProfile(typeof(EntityWithDateTime));
+            var propInfo      = entityProfile.HasProperty<EntityWithDateTime, Date>("date", entity => entity.Date);
             Assert.IsTrue(propInfo.IsDynamicallyInvoked());
         }
     }
