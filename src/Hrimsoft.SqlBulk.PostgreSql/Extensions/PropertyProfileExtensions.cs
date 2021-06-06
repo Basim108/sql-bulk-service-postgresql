@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
-using Hrimsoft.Core.ValueTypes;
+using Hrimsoft.Core.ValueObjects;
 using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql

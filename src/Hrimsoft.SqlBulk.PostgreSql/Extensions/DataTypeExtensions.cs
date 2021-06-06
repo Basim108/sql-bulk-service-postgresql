@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
-using Hrimsoft.Core.ValueTypes;
+using Hrimsoft.Core.ValueObjects;
 using NpgsqlTypes;
 
 namespace Hrimsoft.SqlBulk.PostgreSql

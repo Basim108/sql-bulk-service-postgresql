@@ -1,5 +1,5 @@
 using System;
-using Hrimsoft.Core.ValueTypes;
+using Hrimsoft.Core.ValueObjects;
 
 namespace Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels
 {

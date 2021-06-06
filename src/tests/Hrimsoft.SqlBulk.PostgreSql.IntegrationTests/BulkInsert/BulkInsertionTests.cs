@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Hrimsoft.Core.ValueTypes;
+using Hrimsoft.Core.ValueObjects;
 using Hrimsoft.SqlBulk.PostgreSql.IntegrationTests.TestModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

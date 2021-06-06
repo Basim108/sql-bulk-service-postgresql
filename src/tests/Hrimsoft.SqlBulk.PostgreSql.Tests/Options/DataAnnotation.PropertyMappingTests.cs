@@ -1,5 +1,4 @@
-using Hrimsoft.Core.ValueTypes;
-using Hrimsoft.SqlBulk.PostgreSql;
+using Hrimsoft.Core.ValueObjects;
 using Hrimsoft.SqlBulk.PostgreSql.Tests.TestModels;
 using NpgsqlTypes;
 using NUnit.Framework;
